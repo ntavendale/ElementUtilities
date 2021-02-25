@@ -7,7 +7,9 @@
 {*******************************************************}
 program ElementUI;
 
-
+{$IFDEF RELEASE}
+{$R 'Version.res' 'Version.rc'}
+{$ENDIF}
 
 uses
   {$IFDEF EurekaLog}
