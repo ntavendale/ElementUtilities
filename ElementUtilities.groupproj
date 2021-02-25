@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{7009284D-6688-42B1-9E88-4A0AEFDF79BD}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="UIClient\ElementUI.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="UnitTest\ElementUT.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="ElementUI">
+        <MSBuild Projects="UIClient\ElementUI.dproj"/>
+    </Target>
+    <Target Name="ElementUI:Clean">
+        <MSBuild Projects="UIClient\ElementUI.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ElementUI:Make">
+        <MSBuild Projects="UIClient\ElementUI.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ElementUT">
+        <MSBuild Projects="UnitTest\ElementUT.dproj"/>
+    </Target>
+    <Target Name="ElementUT:Clean">
+        <MSBuild Projects="UnitTest\ElementUT.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ElementUT:Make">
+        <MSBuild Projects="UnitTest\ElementUT.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="ElementUI;ElementUT"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="ElementUI:Clean;ElementUT:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="ElementUI:Make;ElementUT:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>
