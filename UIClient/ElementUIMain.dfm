@@ -70,9 +70,9 @@ object fmMain: TfmMain
       Width = 1155
       Height = 491
       Hint = ''
-      ActivePage = tsDrives
+      ActivePage = tsClusterInfo
       Align = alClient
-      TabIndex = 1
+      TabIndex = 0
       TabOrder = 0
       FixedDimension = 19
       object tsClusterInfo: TRzTabSheet
@@ -110,10 +110,6 @@ object fmMain: TfmMain
           SplitterWidth = 6
           Align = alClient
           TabOrder = 1
-          ExplicitLeft = 408
-          ExplicitTop = 42
-          ExplicitWidth = 385
-          ExplicitHeight = 375
           BarSize = (
             0
             292
@@ -132,10 +128,6 @@ object fmMain: TfmMain
             Caption = 'Nodes'
             GroupStyle = gsBanner
             TabOrder = 0
-            ExplicitLeft = -21
-            ExplicitTop = -49
-            ExplicitWidth = 406
-            ExplicitHeight = 248
             object gNodes: TcxGrid
               Left = 0
               Top = 21
@@ -144,8 +136,7 @@ object fmMain: TfmMain
               Align = alClient
               PopupMenu = ppmNodes
               TabOrder = 0
-              ExplicitWidth = 406
-              ExplicitHeight = 227
+              ExplicitLeft = 6
               object tvNodes: TcxGridTableView
                 Navigator.Buttons.CustomButtons = <>
                 ScrollbarAnnotations.CustomAnnotations = <>
@@ -232,10 +223,6 @@ object fmMain: TfmMain
             Caption = 'PendingNodes'
             GroupStyle = gsBanner
             TabOrder = 0
-            ExplicitLeft = 59
-            ExplicitTop = 30
-            ExplicitWidth = 406
-            ExplicitHeight = 174
             object gPendingNodes: TcxGrid
               Left = 0
               Top = 21
@@ -244,8 +231,6 @@ object fmMain: TfmMain
               Align = alClient
               PopupMenu = ppmPendingNodes
               TabOrder = 0
-              ExplicitWidth = 406
-              ExplicitHeight = 153
               object tvPendingNodes: TcxGridTableView
                 Navigator.Buttons.CustomButtons = <>
                 ScrollbarAnnotations.CustomAnnotations = <>
@@ -313,10 +298,6 @@ object fmMain: TfmMain
           SplitterWidth = 6
           Align = alClient
           TabOrder = 0
-          ExplicitLeft = 56
-          ExplicitTop = 16
-          ExplicitWidth = 705
-          ExplicitHeight = 393
           BarSize = (
             0
             253
@@ -335,10 +316,6 @@ object fmMain: TfmMain
             Caption = 'Drives'
             GroupStyle = gsBanner
             TabOrder = 0
-            ExplicitLeft = 184
-            ExplicitTop = 64
-            ExplicitWidth = 185
-            ExplicitHeight = 105
             object gDrives: TcxGrid
               Left = 0
               Top = 21
@@ -347,10 +324,6 @@ object fmMain: TfmMain
               Align = alClient
               PopupMenu = ppmDrives
               TabOrder = 0
-              ExplicitLeft = 26
-              ExplicitTop = 33
-              ExplicitWidth = 407
-              ExplicitHeight = 228
               object tvDrives: TcxGridTableView
                 Navigator.Buttons.CustomButtons = <>
                 ScrollbarAnnotations.CustomAnnotations = <>
@@ -414,10 +387,6 @@ object fmMain: TfmMain
             Caption = 'Unassigned Drives'
             GroupStyle = gsBanner
             TabOrder = 0
-            ExplicitLeft = 152
-            ExplicitTop = 48
-            ExplicitWidth = 185
-            ExplicitHeight = 105
             object gUnassignedDrives: TcxGrid
               Left = 0
               Top = 21
@@ -426,10 +395,6 @@ object fmMain: TfmMain
               Align = alClient
               PopupMenu = ppmUnassingedDrives
               TabOrder = 0
-              ExplicitLeft = 26
-              ExplicitTop = 33
-              ExplicitWidth = 407
-              ExplicitHeight = 228
               object tvUnassignedDrives: TcxGridTableView
                 Navigator.Buttons.CustomButtons = <>
                 ScrollbarAnnotations.CustomAnnotations = <>
@@ -551,11 +516,9 @@ object fmMain: TfmMain
       Align = alClient
       TabIndex = 0
       TabOrder = 0
-      ExplicitHeight = 186
       FixedDimension = 19
       object tsLog: TRzTabSheet
         Caption = 'Log'
-        ExplicitHeight = 163
         object memLog: TRzMemo
           Left = 0
           Top = 0
@@ -573,7 +536,6 @@ object fmMain: TfmMain
           WordWrap = False
           FrameStyle = fsBump
           FrameVisible = True
-          ExplicitHeight = 163
         end
       end
     end

@@ -160,7 +160,8 @@
         <DCCReference Include="Api.Drive.Test.pas"/>
         <DCCReference Include="Api.Link.Test.pas"/>
         <DCCReference Include="Api.Node.Test.pas"/>
-        <DCCReference Include="Api.Job.Test.pas"/>
+        <DCCReference Include="Api.Volume.Test.pas"/>
+        <DCCReference Include="..\api\ElementApi.Volume.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

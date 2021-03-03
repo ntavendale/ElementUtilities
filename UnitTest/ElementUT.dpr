@@ -23,7 +23,8 @@ uses
   Api.Drive.Test in 'Api.Drive.Test.pas',
   Api.Link.Test in 'Api.Link.Test.pas',
   Api.Node.Test in 'Api.Node.Test.pas',
-  Api.Job.Test in 'Api.Job.Test.pas';
+  Api.Volume.Test in 'Api.Volume.Test.pas',
+  ElementApi.Volume in '..\api\ElementApi.Volume.pas';
 
 {$IFNDEF TESTINSIGHT}
 var

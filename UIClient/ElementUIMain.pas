@@ -397,6 +397,7 @@ begin
     4: Result := LRec.UUID;
     5: Result := LRec.NodeInfoDetail.Role;
     6: Result := LRec.NodeInfoDetail.Version;
+    6: Result := LRec.NodeInfoDetail.;
   end;
 end;
 {$ENDREGION}
@@ -966,9 +967,12 @@ begin
       finally
         Screen.Cursor := crDefault;
       end;
-      LogDebug('DELETE Returned %s', [LResponse]);
       LResponseCode := LEndPoint.ResponseCode;
       LResponseText := LEndPoint.ResponseText;
+      if TEndpointClient.IsReponseCodeSuccess(LEndPoint.ResponseCode) then
+        LogDebug('DELETE Returned %s', [LResponse])
+      else
+        LogDebug('DELETE Returned %s', [LResponseText])
     except
       on E:Exception do
       begin
@@ -992,8 +996,14 @@ begin
   var LPostContents: String;
   var LPostObject := TJSONObject.Create;
   try
-    LPostObject.AddPair('num_records', TJSONNUmber.Create(ADriveInfoList.Count));
-    LPostObject.AddPair('records', ADriveInfoList.ToJSONArray);
+    var LDriveArray := TJSONArray.Create;
+    for var i := 0 to (ADriveInfoList.Count - 1) do
+    begin
+      var LDriveUUID := TJSONObject.Create;
+      LDriveUUID.AddPair('uuid', ADriveInfoList[i].UUID);
+      LDriveArray.Add(LDriveUUID);
+    end;
+    LPostObject.AddPair('records', LDriveArray);
     LPostContents := LPostObject.ToJSON;
   finally
     LPostObject.Free;
@@ -1047,9 +1057,12 @@ begin
       finally
         Screen.Cursor := crDefault;
       end;
-      LogDebug('DELETE Returned %s', [LResponse]);
       LResponseCode := LEndPoint.ResponseCode;
       LResponseText := LEndPoint.ResponseText;
+      if TEndpointClient.IsReponseCodeSuccess(LEndPoint.ResponseCode) then
+        LogDebug('DELETE Returned %s', [LResponse])
+      else
+        LogDebug('DELETE Returned %s', [LResponseText]);
     except
       on E:Exception do
       begin
@@ -1477,3 +1490,4 @@ begin
 end;
 
 end.
+
