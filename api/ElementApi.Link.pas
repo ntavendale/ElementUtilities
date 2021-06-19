@@ -144,6 +144,7 @@ end;
 
 procedure TLinks.FromJsonObject(AJSONObject: TJSONObject);
 begin
+  FList.Clear;
   for var LPair in AJSONObject do
   begin
     var LLInkPair: TLinkPair;

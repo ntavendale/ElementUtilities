@@ -11,7 +11,7 @@ interface
 
 uses
   System.SysUtils, System.Classes, System.JSON, System.Generics.Collections,
-  ElementApi.Link;
+  ElementApi.Link, ElementApi.Error;
 
 const
   API_JOB_PATH = 'api/cluster/jobs';
@@ -20,14 +20,17 @@ type
   TJobInfo = class
   protected
     FLinks: TLinks;
+    FError: TError;
     FDescription: String;
 		FEndTime: String;
 		FMessage: String;
 		FStartTime: String;
 		FState: String;
 		FUUID: String;
+    procedure Init;
     function ToJson: String;
     procedure FromJson(AValue: String);
+    function GetJobHasError: Boolean;
   public
     constructor Create; overload; virtual;
     constructor Create(AJSON: String); overload; virtual;
@@ -36,12 +39,14 @@ type
     function ToJsonObject: TJSONObject;
     procedure FromJsonObject(AJSONObject: TJSONObject);
     property Links: TLinks read FLinks;
+    property ErrorInfo: TError read FError;
     property Description: String read FDescription write FDescription;
 		property EndTime: String read FEndTime write FEndTime;
 		property JobMessage: String read FMessage write FMessage;
 		property StartTime: String read FStartTime write FStartTime;
 		property State: String read FState write FState;
 		property UUID: String read FUUID write FUUID;
+    property HasError: Boolean read GetJobHasError;
     property AsJson: String read ToJson write FromJson;
   end;
 
@@ -75,39 +80,27 @@ constructor TJobInfo.Create;
 begin
   inherited Create;
   FLinks := TLinks.Create;
-  FDescription := String.Empty;
-  FEndTime := String.Empty;
-	FMessage := String.Empty;
-	FStartTime := String.Empty;
-	FState := String.Empty;
-	FUUID := String.Empty;
+  FError := TError.Create;
+  Init;
 end;
 
 constructor TJobInfo.Create(AJSON: String);
 begin
   inherited Create;
   FLinks := TLinks.Create;
-  FDescription := String.Empty;
-  FEndTime := String.Empty;
-	FMessage := String.Empty;
-	FStartTime := String.Empty;
-	FState := String.Empty;
-	FUUID := String.Empty;
+  FError := TError.Create;
+  Init;
   FromJson(AJSON);
 end;
 
 constructor TJobInfo.Create(AJobInfo: TJobInfo);
 begin
   inherited Create;
-  FDescription := String.Empty;
-  FEndTime := String.Empty;
-	FMessage := String.Empty;
-	FStartTime := String.Empty;
-	FState := String.Empty;
-	FUUID := String.Empty;
+  Init;
   if nil <> AJobInfo then
   begin
     FLinks := TLinks.Create(AJobInfo.Links);
+    FError := TError.Create(AJobInfo.ErrorInfo);
     FDescription := AJobInfo.Description;
     FEndTime := AJobInfo.EndTime;
 	  FMessage := AJobInfo.JobMessage;
@@ -115,13 +108,27 @@ begin
 	  FState := AJobInfo.State;
 	  FUUID := AJobInfo.UUID;
   end else
+  begin
     FLinks := TLinks.Create;
+    FError := TError.Create;
+  end;
 end;
 
 destructor TJobInfo.Destroy;
 begin
+  FError.Free;
   FLinks.Free;
   inherited Destroy;
+end;
+
+procedure TJobInfo.Init;
+begin
+  FDescription := String.Empty;
+  FEndTime := String.Empty;
+	FMessage := String.Empty;
+	FStartTime := String.Empty;
+	FState := String.Empty;
+	FUUID := String.Empty;
 end;
 
 function TJobInfo.ToJson: String;
@@ -144,12 +151,21 @@ begin
   end;
 end;
 
+function TJobInfo.GetJobHasError: Boolean;
+begin
+  Result := not (String.IsNullOrWhiteSpace(FError.ErrorCode) or String.IsNullOrWhiteSpace(FError.ErrorMessage));
+end;
+
 function TJobInfo.ToJsonObject: TJSONObject;
 begin
   Result := TJSONObject.Create;
   Result.AddPair('_links', FLinks.ToJsonObject);
   Result.AddPair('description', FDescription);
   Result.AddPair('end_time', FEndTime);
+  if Self.HasError then
+  begin
+    Result.AddPair('error', FError.ToJsonObject);
+  end;
   Result.AddPair('message', FMessage);
   Result.AddPair('start_time', FStartTime);
   Result.AddPair('state', FState);
@@ -158,13 +174,17 @@ end;
 
 procedure TJobInfo.FromJsonObject(AJSONObject: TJSONObject);
 begin
+  Init;
   FLinks.Clear;
+  FError.Clear;
   if nil <> AJSONObject.Values['_links'] then
     FLinks.FromJsonObject(AJSONObject.Values['_links'] as TJSONObject);
   if nil <> AJSONObject.Values['description'] then
     FDescription := AJSONObject.Values['description'].Value;
   if nil <> AJSONObject.Values['end_time'] then
     FEndTime := AJSONObject.Values['end_time'].Value;
+  if nil <> AJSONObject.Values['error'] then
+    FError.FromJsonObject(AJSONObject.Values['error'] as TJSONObject);
   if nil <> AJSONObject.Values['message'] then
     FMessage := AJSONObject.Values['message'].Value;
   if nil <> AJSONObject.Values['start_time'] then

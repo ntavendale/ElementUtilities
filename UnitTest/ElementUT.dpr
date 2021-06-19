@@ -24,7 +24,10 @@ uses
   Api.Link.Test in 'Api.Link.Test.pas',
   Api.Node.Test in 'Api.Node.Test.pas',
   Api.Volume.Test in 'Api.Volume.Test.pas',
-  ElementApi.Volume in '..\api\ElementApi.Volume.pas';
+  ElementApi.Volume in '..\api\ElementApi.Volume.pas',
+  ElementApi.Error in '..\api\ElementApi.Error.pas',
+  ElementApi.QosPolicy in '..\api\ElementApi.QosPolicy.pas',
+  Api.QosPolicy.Test in 'Api.QosPolicy.Test.pas';
 
 {$IFNDEF TESTINSIGHT}
 var

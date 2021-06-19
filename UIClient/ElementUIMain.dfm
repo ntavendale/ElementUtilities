@@ -70,9 +70,9 @@ object fmMain: TfmMain
       Width = 1155
       Height = 491
       Hint = ''
-      ActivePage = tsClusterInfo
+      ActivePage = tsQosPolicy
       Align = alClient
-      TabIndex = 0
+      TabIndex = 3
       TabOrder = 0
       FixedDimension = 19
       object tsClusterInfo: TRzTabSheet
@@ -136,7 +136,6 @@ object fmMain: TfmMain
               Align = alClient
               PopupMenu = ppmNodes
               TabOrder = 0
-              ExplicitLeft = 6
               object tvNodes: TcxGridTableView
                 Navigator.Buttons.CustomButtons = <>
                 ScrollbarAnnotations.CustomAnnotations = <>
@@ -154,7 +153,11 @@ object fmMain: TfmMain
                 OptionsView.GroupByBox = False
                 object colNodeID: TcxGridColumn
                   Caption = 'Node ID'
-                  Width = 100
+                  Width = 47
+                end
+                object colNodesName: TcxGridColumn
+                  Caption = 'Name'
+                  Width = 140
                 end
                 object coNodeClusterlP: TcxGridColumn
                   Caption = 'Cluster IP'
@@ -248,7 +251,11 @@ object fmMain: TfmMain
                 OptionsView.GroupByBox = False
                 object colPendingNodeID: TcxGridColumn
                   Caption = 'Node ID'
-                  Width = 100
+                  Width = 60
+                end
+                object volPendingNodeName: TcxGridColumn
+                  Caption = 'Name'
+                  Width = 132
                 end
                 object colPendingNodeClusterIP: TcxGridColumn
                   Caption = 'Cluster IP'
@@ -343,7 +350,7 @@ object fmMain: TfmMain
                 OptionsView.GroupByBox = False
                 object colDriveName: TcxGridColumn
                   Caption = 'Name'
-                  Width = 254
+                  Width = 227
                 end
                 object colDriveState: TcxGridColumn
                   Caption = 'State'
@@ -351,13 +358,15 @@ object fmMain: TfmMain
                 end
                 object colDriveModel: TcxGridColumn
                   Caption = 'Model'
-                  Width = 184
+                  Width = 166
                 end
                 object colDriveNodeID: TcxGridColumn
                   Caption = 'Node ID'
+                  Width = 56
                 end
-                object colDriveSlot: TcxGridColumn
-                  Caption = 'Slot'
+                object colDrivePath: TcxGridColumn
+                  Caption = 'Path'
+                  Width = 119
                 end
                 object colDriveFirmwareVersion: TcxGridColumn
                   Caption = 'Firmware Version'
@@ -453,55 +462,206 @@ object fmMain: TfmMain
       end
       object tsJobs: TRzTabSheet
         Caption = 'tsJobs'
-        object gJobs: TcxGrid
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
+        object gbJobs: TRzGroupBox
+          Left = 0
+          Top = 0
+          Width = 1151
+          Height = 368
+          Align = alClient
+          Caption = 'Jobs'
+          GroupStyle = gsBanner
+          TabOrder = 0
+          object gJobs: TcxGrid
+            Left = 0
+            Top = 21
+            Width = 1151
+            Height = 347
+            Align = alClient
+            TabOrder = 0
+            object tvJobs: TcxGridTableView
+              Navigator.Buttons.CustomButtons = <>
+              ScrollbarAnnotations.CustomAnnotations = <>
+              OnFocusedRecordChanged = tvJobsFocusedRecordChanged
+              DataController.Summary.DefaultGroupSummaryItems = <>
+              DataController.Summary.FooterSummaryItems = <>
+              DataController.Summary.SummaryGroups = <>
+              OptionsData.CancelOnExit = False
+              OptionsData.Deleting = False
+              OptionsData.DeletingConfirmation = False
+              OptionsData.Editing = False
+              OptionsData.Inserting = False
+              OptionsSelection.CellSelect = False
+              OptionsSelection.HideFocusRectOnExit = False
+              OptionsSelection.UnselectFocusedRecordOnExit = False
+              OptionsView.GroupByBox = False
+              object colJobDescription: TcxGridColumn
+                Caption = 'Description'
+                Width = 249
+              end
+              object colJobStartTime: TcxGridColumn
+                Caption = 'Start Time'
+                Width = 151
+              end
+              object colJobEndTime: TcxGridColumn
+                Caption = 'End Time'
+                Width = 159
+              end
+              object colJobMessage: TcxGridColumn
+                Caption = 'Message'
+                Width = 217
+              end
+              object colJobState: TcxGridColumn
+                Caption = 'State'
+                Width = 89
+              end
+              object colJobUUID: TcxGridColumn
+                Caption = 'UUID'
+                Width = 228
+              end
+            end
+            object lvJobs: TcxGridLevel
+              GridView = tvJobs
+            end
+          end
+        end
+        object gbJobError: TRzGroupBox
+          Left = 0
+          Top = 368
+          Width = 1151
+          Height = 100
+          Align = alBottom
+          Caption = 'Error Information'
+          GroupStyle = gsBanner
+          TabOrder = 1
+          object vgJobError: TcxVerticalGrid
+            Left = 0
+            Top = 21
+            Width = 1151
+            Height = 79
+            Align = alClient
+            OptionsView.RowHeaderWidth = 110
+            TabOrder = 0
+            Version = 1
+          end
+        end
+      end
+      object tsQosPolicy: TRzTabSheet
+        Caption = 'tsQosPolicy'
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
+        object gbQosPOlicies: TRzGroupBox
           Left = 0
           Top = 0
           Width = 1151
           Height = 468
           Align = alClient
+          Caption = 'Qos Policies'
+          GroupStyle = gsBanner
           TabOrder = 0
-          object tvJobs: TcxGridTableView
-            Navigator.Buttons.CustomButtons = <>
-            ScrollbarAnnotations.CustomAnnotations = <>
-            DataController.Summary.DefaultGroupSummaryItems = <>
-            DataController.Summary.FooterSummaryItems = <>
-            DataController.Summary.SummaryGroups = <>
-            OptionsData.CancelOnExit = False
-            OptionsData.Deleting = False
-            OptionsData.DeletingConfirmation = False
-            OptionsData.Editing = False
-            OptionsData.Inserting = False
-            OptionsSelection.CellSelect = False
-            OptionsSelection.HideFocusRectOnExit = False
-            OptionsSelection.UnselectFocusedRecordOnExit = False
-            OptionsView.GroupByBox = False
-            object colJobDescription: TcxGridColumn
-              Caption = 'Description'
+          object pnCosts: TPanel
+            Left = 902
+            Top = 21
+            Width = 249
+            Height = 447
+            Align = alRight
+            BevelOuter = bvNone
+            TabOrder = 0
+            ExplicitLeft = 864
+            ExplicitTop = 45
+            ExplicitHeight = 377
+            object vgCurve: TcxVerticalGrid
+              Left = 0
+              Top = 0
               Width = 249
-            end
-            object colJobStartTime: TcxGridColumn
-              Caption = 'Start Time'
-              Width = 151
-            end
-            object colJobEndTime: TcxGridColumn
-              Caption = 'End Time'
-              Width = 159
-            end
-            object colJobMessage: TcxGridColumn
-              Caption = 'Message'
-              Width = 217
-            end
-            object colJobState: TcxGridColumn
-              Caption = 'State'
-              Width = 89
-            end
-            object colJobUUID: TcxGridColumn
-              Caption = 'UUID'
-              Width = 228
+              Height = 447
+              Align = alClient
+              TabOrder = 0
+              ExplicitLeft = -14
+              ExplicitTop = 18
+              ExplicitWidth = 263
+              ExplicitHeight = 359
+              Version = 1
+              object crCosts: TcxCategoryRow
+                Properties.Caption = 'Costs'
+                ID = 0
+                ParentID = -1
+                Index = 0
+                Version = 1
+              end
             end
           end
-          object lvJobs: TcxGridLevel
-            GridView = tvJobs
+          object pnQosGrid: TPanel
+            Left = 0
+            Top = 21
+            Width = 902
+            Height = 447
+            Align = alClient
+            BevelOuter = bvNone
+            TabOrder = 1
+            ExplicitLeft = 16
+            ExplicitTop = 40
+            ExplicitWidth = 594
+            ExplicitHeight = 329
+            object gQosPolicies: TcxGrid
+              Left = 0
+              Top = 0
+              Width = 902
+              Height = 447
+              Align = alClient
+              TabOrder = 0
+              ExplicitLeft = 33
+              ExplicitTop = 10
+              ExplicitWidth = 505
+              ExplicitHeight = 295
+              object tvQosPolicies: TcxGridTableView
+                Navigator.Buttons.CustomButtons = <>
+                ScrollbarAnnotations.CustomAnnotations = <>
+                OnFocusedRecordChanged = tvQosPoliciesFocusedRecordChanged
+                DataController.Summary.DefaultGroupSummaryItems = <>
+                DataController.Summary.FooterSummaryItems = <>
+                DataController.Summary.SummaryGroups = <>
+                OptionsData.CancelOnExit = False
+                OptionsData.Deleting = False
+                OptionsData.DeletingConfirmation = False
+                OptionsData.Editing = False
+                OptionsData.Inserting = False
+                OptionsSelection.CellSelect = False
+                OptionsView.GroupByBox = False
+                object colQosDescription: TcxGridColumn
+                  Caption = 'Description'
+                  Width = 183
+                end
+                object colQosBurstIOPS: TcxGridColumn
+                  Caption = 'Burst IOPS'
+                  Width = 116
+                end
+                object colQosBurstTime: TcxGridColumn
+                  Caption = 'Burst Time'
+                  Width = 113
+                end
+                object colQosMaxIOPS: TcxGridColumn
+                  Caption = 'Max IOPS'
+                  Width = 101
+                end
+                object colQosMinIOPS: TcxGridColumn
+                  Caption = 'Min IOPS'
+                  Width = 112
+                end
+                object colQosPoliciesUUID: TcxGridColumn
+                  Caption = 'UUID'
+                  Width = 196
+                end
+              end
+              object lvQosPolicies: TcxGridLevel
+                GridView = tvQosPolicies
+              end
+            end
           end
         end
       end
@@ -519,6 +679,10 @@ object fmMain: TfmMain
       FixedDimension = 19
       object tsLog: TRzTabSheet
         Caption = 'Log'
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitWidth = 0
+        ExplicitHeight = 0
         object memLog: TRzMemo
           Left = 0
           Top = 0
@@ -15655,6 +15819,10 @@ object fmMain: TfmMain
         item
           Visible = True
           ItemName = 'btnJobs'
+        end
+        item
+          Visible = True
+          ItemName = 'btnQosPolicies'
         end>
       OneOnRow = False
       Row = 0
@@ -15665,7 +15833,7 @@ object fmMain: TfmMain
     object BarLog: TdxBar
       Caption = 'Log'
       CaptionButtons = <>
-      DockedLeft = 152
+      DockedLeft = 208
       DockedTop = 0
       FloatLeft = 503
       FloatTop = 313
@@ -15690,7 +15858,7 @@ object fmMain: TfmMain
     object barHelp: TdxBar
       Caption = 'Help'
       CaptionButtons = <>
-      DockedLeft = 203
+      DockedLeft = 259
       DockedTop = 0
       FloatLeft = 675
       FloatTop = 408
@@ -15743,6 +15911,8 @@ object fmMain: TfmMain
       Category = 0
       Hint = 'Cluster Info'
       Visible = ivAlways
+      ButtonStyle = bsChecked
+      GroupIndex = 1
       OnClick = btnClusterInfoClick
       LargeImageIndex = 67
     end
@@ -15814,6 +15984,8 @@ object fmMain: TfmMain
       Category = 0
       Hint = 'Drives'
       Visible = ivAlways
+      ButtonStyle = bsChecked
+      GroupIndex = 1
       OnClick = btnDrivesClick
       LargeImageIndex = 45
       SyncImageIndex = False
@@ -15824,10 +15996,22 @@ object fmMain: TfmMain
       Category = 0
       Hint = 'Jobs'
       Visible = ivAlways
+      ButtonStyle = bsChecked
+      GroupIndex = 1
       OnClick = btnJobsClick
       LargeImageIndex = 1
       SyncImageIndex = False
       ImageIndex = 1
+    end
+    object btnQosPolicies: TdxBarLargeButton
+      Caption = 'Qos Policies'
+      Category = 0
+      Hint = 'Qos Policies'
+      Visible = ivAlways
+      ButtonStyle = bsChecked
+      GroupIndex = 1
+      OnClick = btnQosPoliciesClick
+      LargeImageIndex = 49
     end
   end
   object ppmNodes: TPopupMenu

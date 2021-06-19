@@ -77,7 +77,15 @@ type
 
   TVolume = class
   protected
+    FLinks: TLinks;
+    FNAS: TNAS;
+    FLogicalSpace: TLogicalSpace;
+    FSnapshot: TSnapshot;
   public
+    property Links: TLinks read FLinks;
+    property FNA: TNAS read FNAS;
+    property LogicalSpace: TLogicalSpace read FLogicalSpace;
+    property Snapshot: TSnapshot read FSnapshot;
   end;
 
 implementation

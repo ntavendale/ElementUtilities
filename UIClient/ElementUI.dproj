@@ -130,8 +130,8 @@
         <DCC_ExeOutput>..\Release</DCC_ExeOutput>
         <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
         <Icon_MainIcon>TheIcon.ico</Icon_MainIcon>
-        <VerInfo_Build>61</VerInfo_Build>
-        <VerInfo_Keys>CompanyName=;FileDescription=ElementUI;FileVersion=1.0.0.61;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.ElementUI;ProductName=ElementUI;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <VerInfo_Build>69</VerInfo_Build>
+        <VerInfo_Keys>CompanyName=;FileDescription=ElementUI;FileVersion=1.0.0.69;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.ElementUI;ProductName=ElementUI;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
     </PropertyGroup>
     <ItemGroup>
         <DelphiCompile Include="$(MainSource)">
@@ -165,6 +165,8 @@
             <Form>fmClusterDetail</Form>
         </DCCReference>
         <DCCReference Include="..\api\ElementApi.Job.pas"/>
+        <DCCReference Include="..\api\ElementApi.Error.pas"/>
+        <DCCReference Include="..\api\ElementApi.QosPolicy.pas"/>
         <RcCompile Include="Version.rc">
             <Form>Version.res</Form>
         </RcCompile>
@@ -194,6 +196,18 @@
                 </Excluded_Packages>
             </Delphi.Personality>
             <Deployment Version="3">
+                <DeployFile LocalName="Win32\Debug\ElementUI.exe" Configuration="Debug" Class="ProjectOutput">
+                    <Platform Name="Win32">
+                        <RemoteName>ElementUI.exe</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="Win64\Debug\ElementUI.rsm" Configuration="Debug" Class="DebugSymbols">
+                    <Platform Name="Win64">
+                        <RemoteName>ElementUI.rsm</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="Win64\Debug\ElementUI.exe" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win64">
                         <RemoteName>ElementUI.exe</RemoteName>
@@ -202,12 +216,6 @@
                 </DeployFile>
                 <DeployFile LocalName="..\Release\ElementUI.exe" Configuration="Release" Class="ProjectOutput">
                     <Platform Name="Win64">
-                        <RemoteName>ElementUI.exe</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="Win32\Debug\ElementUI.exe" Configuration="Debug" Class="ProjectOutput">
-                    <Platform Name="Win32">
                         <RemoteName>ElementUI.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>

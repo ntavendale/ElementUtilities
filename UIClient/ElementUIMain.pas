@@ -35,7 +35,7 @@ uses
   cxEdit, cxInplaceContainer, cxVGrid, cxCustomData, cxFilter, cxData, cxNavigator,
   dxDateRanges, cxGridCustomTableView, cxGridTableView, cxGridCustomView,
   cxGridLevel, cxGrid, Vcl.Menus, System.UITypes, FileLogger, Utilities, EndPointClient,
-  ElementApi.Cluster, ElementApi.Node, ElementApi.Drive, ElementApi.Job;
+  ElementApi.Cluster, ElementApi.Node, ElementApi.Drive, ElementApi.Job, ElementApi.QosPolicy;
 
 type
   TLogWriteProc = procedure(AValue: String) of Object;
@@ -109,6 +109,18 @@ type
     property Jobs: TJobInfoList read FList;
   end;
 
+  TQosPolicyListDataSource = class(TcxCustomDataSource)
+  private
+    FList: TQosPolicyList;
+  protected
+    function GetRecordCount: Integer; override;
+    function GetValue(ARecordHandle: TcxDataRecordHandle; AItemHandle: TcxDataItemHandle): Variant; override;
+  public
+    constructor Create(AJSON: String);
+    destructor Destroy; override;
+    property QosPolicies: TQosPolicyList read FList;
+  end;
+
   TfmMain = class(TForm)
     ilBarLarge: TcxImageList;
     ilBarSmall: TcxImageList;
@@ -146,15 +158,6 @@ type
     ppmPendingNodes: TPopupMenu;
     ppmiAddNodeToCluster: TMenuItem;
     tsJobs: TRzTabSheet;
-    gJobs: TcxGrid;
-    tvJobs: TcxGridTableView;
-    colJobDescription: TcxGridColumn;
-    colJobStartTime: TcxGridColumn;
-    colJobEndTime: TcxGridColumn;
-    colJobMessage: TcxGridColumn;
-    colJobState: TcxGridColumn;
-    colJobUUID: TcxGridColumn;
-    lvJobs: TcxGridLevel;
     btnJobs: TdxBarLargeButton;
     splNodes: TRzSplitter;
     gbNodes: TRzGroupBox;
@@ -191,7 +194,7 @@ type
     colDriveState: TcxGridColumn;
     colDriveModel: TcxGridColumn;
     colDriveNodeID: TcxGridColumn;
-    colDriveSlot: TcxGridColumn;
+    colDrivePath: TcxGridColumn;
     colDriveFirmwareVersion: TcxGridColumn;
     colDriveEncryptionCapable: TcxGridColumn;
     colDriveUUID: TcxGridColumn;
@@ -213,6 +216,36 @@ type
     ppmiDeleteDrives: TMenuItem;
     ppmUnassingedDrives: TPopupMenu;
     ppmiAddSelectedDrives: TMenuItem;
+    gbJobs: TRzGroupBox;
+    gJobs: TcxGrid;
+    tvJobs: TcxGridTableView;
+    colJobDescription: TcxGridColumn;
+    colJobStartTime: TcxGridColumn;
+    colJobEndTime: TcxGridColumn;
+    colJobMessage: TcxGridColumn;
+    colJobState: TcxGridColumn;
+    colJobUUID: TcxGridColumn;
+    lvJobs: TcxGridLevel;
+    gbJobError: TRzGroupBox;
+    vgJobError: TcxVerticalGrid;
+    colNodesName: TcxGridColumn;
+    volPendingNodeName: TcxGridColumn;
+    tsQosPolicy: TRzTabSheet;
+    gbQosPOlicies: TRzGroupBox;
+    btnQosPolicies: TdxBarLargeButton;
+    pnCosts: TPanel;
+    vgCurve: TcxVerticalGrid;
+    crCosts: TcxCategoryRow;
+    pnQosGrid: TPanel;
+    gQosPolicies: TcxGrid;
+    tvQosPolicies: TcxGridTableView;
+    colQosDescription: TcxGridColumn;
+    colQosBurstIOPS: TcxGridColumn;
+    colQosBurstTime: TcxGridColumn;
+    colQosMaxIOPS: TcxGridColumn;
+    colQosMinIOPS: TcxGridColumn;
+    colQosPoliciesUUID: TcxGridColumn;
+    lvQosPolicies: TcxGridLevel;
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FormShow(Sender: TObject);
     procedure btnClusterInfoClick(Sender: TObject);
@@ -224,6 +257,13 @@ type
     procedure btnJobsClick(Sender: TObject);
     procedure ppmiAddSelectedDrivesClick(Sender: TObject);
     procedure ppmiDeleteDrivesClick(Sender: TObject);
+    procedure tvJobsFocusedRecordChanged(Sender: TcxCustomGridTableView;
+      APrevFocusedRecord, AFocusedRecord: TcxCustomGridRecord;
+      ANewItemRecordFocusingChanged: Boolean);
+    procedure btnQosPoliciesClick(Sender: TObject);
+    procedure tvQosPoliciesFocusedRecordChanged(Sender: TcxCustomGridTableView;
+      APrevFocusedRecord, AFocusedRecord: TcxCustomGridRecord;
+      ANewItemRecordFocusingChanged: Boolean);
   private
     { Private declarations }
     FLanguageID: Integer;
@@ -236,11 +276,13 @@ type
     function GetPendingNodes: TNodeInfoList;
     function GetDrives(AUnassigned: Boolean = FALSE): TDriveInfoList;
     function GetJobs: TJobInfoList;
+    function GetQosPolicies: TQosPolicyList;
     procedure AddPendingNode(ANodeUUID: String);
     procedure DeleteNode(ANodeUUID: String);
     procedure AddAvailableDrives(ADriveInfoList: TDriveInfoList);
     procedure DeleteDrive(ADriveUUID: String);
     procedure DisplayClusterInfo(AClusterInfo: TClusterInfo);
+    procedure DisplayCosts(ACostList: TCostList);
     procedure LoadNodeGrid(AJSON: String);
     procedure ClearNodeGrid;
     procedure LoadPendingNodeGrid(AJSON: String);
@@ -251,6 +293,9 @@ type
     procedure ClearUnassignedDrivesGrid;
     procedure LoadJobsGrid(AJSON: String);
     procedure ClearJobsGrid;
+    procedure LoadQosPoliciesGrid(AJSON: String);
+    procedure ClearQosPoliciesGrid;
+    procedure DisplayJobError(AErrorCode, AErrorMessage: String);
   public
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
@@ -391,13 +436,13 @@ begin
 
   case LCloumnIndex of
     0: Result := LRec.NodeID;
-    1: Result := LRec.NodeInfoDetail.ClusterIP;
-    2: Result := LRec.NodeInfoDetail.ManagementIP;
-    3: Result := LRec.NodeInfoDetail.StorageIP;
-    4: Result := LRec.UUID;
-    5: Result := LRec.NodeInfoDetail.Role;
-    6: Result := LRec.NodeInfoDetail.Version;
-    6: Result := LRec.NodeInfoDetail.;
+    1: Result := LRec.Name;
+    2: Result := LRec.NodeInfoDetail.ClusterIP;
+    3: Result := LRec.NodeInfoDetail.ManagementIP;
+    4: Result := LRec.NodeInfoDetail.StorageIP;
+    5: Result := LRec.UUID;
+    6: Result := LRec.NodeInfoDetail.Role;
+    7: Result := LRec.NodeInfoDetail.Version;
   end;
 end;
 {$ENDREGION}
@@ -487,10 +532,10 @@ begin
 
   case LCloumnIndex of
     0: Result := LRec.DriveDetail.Name;
-    1: Result := LRec.DriveDetail.State;
+    1: Result := LRec.State;
     2: Result := LRec.DriveDetail.Model;
     3: Result := LRec.DriveDetail.Node.NodeID;
-    4: Result := LRec.DriveDetail.Slot;
+    4: Result := LRec.DriveDetail.Path;
     5: Result := LRec.DriveDetail.FirmwareVersion;
     6: Result := LRec.DriveDetail.EncryptionCapable;
     7: Result := LRec.UUID;
@@ -540,6 +585,44 @@ begin
 end;
 {$ENDREGION}
 
+{$REGION 'TQosPolicyListDataSource'}
+constructor TQosPolicyListDataSource.Create(AJSON: String);
+begin
+  FList := TQosPolicyList.Create(AJSON);
+end;
+
+destructor TQosPolicyListDataSource.Destroy;
+begin
+  FList.Free;
+  inherited Destroy;
+end;
+
+function TQosPolicyListDataSource.GetRecordCount: Integer;
+begin
+  Result := FList.Count;
+end;
+
+function TQosPolicyListDataSource.GetValue(ARecordHandle: TcxDataRecordHandle; AItemHandle: TcxDataItemHandle): Variant;
+begin
+  Result := NULL;
+  var LRecordIndex := Integer(ARecordHandle);
+  var LRec := FList[LRecordIndex];
+  if nil = LRec then
+    EXIT;
+
+  var LCloumnIndex := Integer(AItemHandle);
+
+  case LCloumnIndex of
+    0: Result := LRec.Description;
+    1: Result := LRec.BurstIOPS;
+    2: Result := LRec.BurstTime;
+    3: Result := LRec.MaxIOPS;
+    4: Result := LRec.MinIOPS;
+    5: Result := LRec.UUID;
+  end;
+end;
+{$ENDREGION}
+
 {===============================================================================
   Custom Methods
 ===============================================================================}
@@ -567,6 +650,7 @@ begin
   tsClusterInfo.TabVisible := FALSE;
   tsDrives.TabVisible := FALSE;
   tsJobs.TabVisible := FALSE;
+  tsQosPolicy.TabVisible := FALSE;
 end;
 
 destructor TfmMain.Destroy;
@@ -597,20 +681,20 @@ begin
   var LEndPoint := TEndpointClient.Create(FHostAddress, FHostPort, '', '', String.Format('%s', [API_CLUSTER_PATH]));
   try
     try
-      LogInfo(String.Format('GET %s', [LEndPoint.FullURL]));
       Screen.Cursor := crHourglass;
       try
         LGetResponse := LEndPoint.Get;
       finally
         Screen.Cursor := crDefault;
       end;
-      LogDebug('GET Returned %s', [LGetResponse]);
       LResponseCode := LEndPoint.ResponseCode;
       LResponseText := LEndPoint.ResponseText;
+      LogInfo(String.Format('GET %s. Response: %s', [LEndPoint.FullURL, LResponseText]));
+      LogDebug('GET Returned %s', [LGetResponse]);
     except
       on E:Exception do
       begin
-        LogError('Exeption: %s: %s', [E.Message]);
+        LogError('Exeption attempting GET %s: %s', [LEndPoint.FullURL, E.Message]);
         EXIT;
       end;
     end;
@@ -624,18 +708,29 @@ begin
     EXIT;
   end;
 
-  Result := TClusterInfo.Create(LGetResponse);
+  try
+    Result := TClusterInfo.Create(LGetResponse);
+  except
+    on E:Exception do
+    begin
+      LogError('Exeption: %s: %s', [E.Message]);
+      Result := nil;
+    end;
+  end;
 end;
 
 function TfmMain.GetNodes: TNodeInfoList;
 begin
   {$IFDEF DEBUG}
-  Result := TNodeInfoList.Create('[{"_links":{"self":{"href":"/api/cluster/nodes/e6c62f86-3bb4-5b9d-822f-ca60a4b64d3d"}},' +
-                                 '"detail":{"cluster_ip":{"address":"10.117.80.157"},"drives":[{"_links":{"self":' +
-                                 '{"href":"/api/cluster/drives/5aa562ba-7257-5757-a6d3-24f7971c643f"}},"state":"Active","uuid":"5aa562ba-7257-5757-a6d3-24f7971c643f"},{"_links":{"self":{"href":"/api/cluster/drives/7116ca99-c93d-5551-885c-8625785f9c67"}}' +
-                                 ',"state":"Active","uuid":"7116ca99-c93d-5551-885c-8625785f9c67"},{"_links":{"self":{"href":"/api/cluster/drives/3a1e3680-0c8b-5e23-8c2e-2d42acf96ea4"}},"state":"Active","uuid":"3a1e3680-0c8b-5e23-8c2e-2d42acf96ea4"},' +
-                                 '{"_links":{"self":{"href":"/api/cluster/drives/a6eec0e6-6e43-578c-aaec-e404a6a62f0d"}},'+'"state":"Active","uuid":"a6eec0e6-6e43-578c-aaec-e404a6a62f0d"},{"_links":{"self":{"href":"/api/cluster/drives/895c2810-4ed6-5906-8ecd-d9a8f2cb560a"}},' +
-                                 '"state":"Active","uuid":"895c2810-4ed6-5906-8ecd-d9a8f2cb560a"},{"_links":{"self":{"href":"/api/cluster/drives/b9bf9d47-8a39-5491-8afc-83385c5a9761"}},"state":"Active","uuid":"b9bf9d47-8a39-5491-8afc-83385c5a9761"}],'+'"management_ip":{"address":"10.117.64.253"},"role":"Storage","storage_ip":{"address":"10.117.80.157"},"version":"12.75.0.5931100"},"id":1,"uuid":"e6c62f86-3bb4-5b9d-822f-ca60a4b64d3d"}]');
+  Result := TNodeInfoList.Create('[{"_links":{"self":{"href":"/api/cluster/nodes/e6c62f86-3bb4-5b9d-822f-ca60a4b64d3d"}},"detail":{"cluster_ip":{"address":"10.117.80.157"},' +
+                                 '"drives":[{"_links":{"self":{"href":"/api/cluster/drives/5aa562ba-7257-5757-a6d3-24f7971c643f"}},"state":"Active","uuid":"5aa562ba-7257-5757-a6d3-24f7971c643f"},' +
+                                 '{"_links":{"self":{"href":"/api/cluster/drives/7116ca99-c93d-5551-885c-8625785f9c67"}},"state":"Active","uuid":"7116ca99-c93d-5551-885c-8625785f9c67"},' +
+                                 '{"_links":{"self":{"href":"/api/cluster/drives/3a1e3680-0c8b-5e23-8c2e-2d42acf96ea4"}},"state":"Active","uuid":"3a1e3680-0c8b-5e23-8c2e-2d42acf96ea4"},' +
+                                 '{"_links":{"self":{"href":"/api/cluster/drives/a6eec0e6-6e43-578c-aaec-e404a6a62f0d"}},"state":"Active","uuid":"a6eec0e6-6e43-578c-aaec-e404a6a62f0d"},' +
+                                 '{"_links":{"self":{"href":"/api/cluster/drives/895c2810-4ed6-5906-8ecd-d9a8f2cb560a"}},"state":"Active","uuid":"895c2810-4ed6-5906-8ecd-d9a8f2cb560a"},' +
+                                 '{"_links":{"self":{"href":"/api/cluster/drives/b9bf9d47-8a39-5491-8afc-83385c5a9761"}},"state":"Active","uuid":"b9bf9d47-8a39-5491-8afc-83385c5a9761"}],' +
+                                 '"maintenance_mode":{"state":"Disabled","variant":"None"},"management_ip":{"address":"10.117.64.253"},"role":"Storage","storage_ip":{"address":"10.117.80.157"},"version":"12.75.0.5931100"},' +
+                                 '"id":1,"name":"NHCITJJ1525","uuid":"e6c62f86-3bb4-5b9d-822f-ca60a4b64d3d"}]');
   EXIT;
   {$ELSE}
   Result := nil;
@@ -647,20 +742,20 @@ begin
   var LEndPoint := TEndpointClient.Create(FHostAddress, FHostPort, '', '', 'api/cluster/nodes');
   try
     try
-      LogInfo('GET %s', [LEndPoint.FullURL]);
       Screen.Cursor := crHourglass;
       try
         LGetResponse := LEndPoint.Get;
       finally
         Screen.Cursor := crDefault;
       end;
-      LogDebug('GET Returned %s', [LGetResponse]);
       LResponseCode := LEndPoint.ResponseCode;
       LResponseText := LEndPoint.ResponseText;
+      LogInfo(String.Format('GET %s. Response: %s', [LEndPoint.FullURL, LResponseText]));
+      LogDebug('GET Returned %s', [LGetResponse]);
     except
       on E:Exception do
       begin
-        LogError('Exeption: %s: %s', [E.Message]);
+        LogError('Exeption in GET %s: %s', [LEndPoint.FullURL, E.Message]);
         EXIT;
       end;
     end;
@@ -677,26 +772,32 @@ begin
   Result := TNodeInfoList.Create;
 
   var LObj := TJSONObject.ParseJSONValue(LGetResponse) as TJSONObject;
-  try
+  if nil <> LObj then
+  begin
     try
-      Result.FromJSONArray(LObj.Values['records'] as TJSONArray);
-    except
-      LogError(String.Format('Could Not parse JSON %s', [LGetResponse]));
+      try
+        Result.FromJSONArray(LObj.Values['records'] as TJSONArray);
+      except
+        LogError(String.Format('Could Not parse JSON %s', [LGetResponse]));
+      end;
+    finally
+      LObj.Free;
     end;
-  finally
-    LObj.Free;
   end;
 end;
 
 function TfmMain.GetPendingNodes: TNodeInfoList;
 begin
   {$IFDEF DEBUG}
-  Result := TNodeInfoList.Create('[{"_links":{"self":{"href":"/api/cluster/nodes/e6c62f86-3bb4-5b9d-822f-ca60a4b64d3d"}},' +
-                                 '"detail":{"cluster_ip":{"address":"10.117.80.157"},"drives":[{"_links":{"self":' +
-                                 '{"href":"/api/cluster/drives/5aa562ba-7257-5757-a6d3-24f7971c643f"}},"state":"Active","uuid":"5aa562ba-7257-5757-a6d3-24f7971c643f"},{"_links":{"self":{"href":"/api/cluster/drives/7116ca99-c93d-5551-885c-8625785f9c67"}}' +
-                                 ',"state":"Active","uuid":"7116ca99-c93d-5551-885c-8625785f9c67"},{"_links":{"self":{"href":"/api/cluster/drives/3a1e3680-0c8b-5e23-8c2e-2d42acf96ea4"}},"state":"Active","uuid":"3a1e3680-0c8b-5e23-8c2e-2d42acf96ea4"},' +
-                                 '{"_links":{"self":{"href":"/api/cluster/drives/a6eec0e6-6e43-578c-aaec-e404a6a62f0d"}},'+'"state":"Active","uuid":"a6eec0e6-6e43-578c-aaec-e404a6a62f0d"},{"_links":{"self":{"href":"/api/cluster/drives/895c2810-4ed6-5906-8ecd-d9a8f2cb560a"}},' +
-                                 '"state":"Active","uuid":"895c2810-4ed6-5906-8ecd-d9a8f2cb560a"},{"_links":{"self":{"href":"/api/cluster/drives/b9bf9d47-8a39-5491-8afc-83385c5a9761"}},"state":"Active","uuid":"b9bf9d47-8a39-5491-8afc-83385c5a9761"}],'+'"management_ip":{"address":"10.117.64.253"},"role":"Storage","storage_ip":{"address":"10.117.80.157"},"version":"12.75.0.5931100"},"id":1,"uuid":"e6c62f86-3bb4-5b9d-822f-ca60a4b64d3d"}]');
+  Result := TNodeInfoList.Create('[{"_links":{"self":{"href":"/api/cluster/nodes/e6c62f86-3bb4-5b9d-822f-ca60a4b64d3d"}},"detail":{"cluster_ip":{"address":"10.117.80.157"},' +
+                                 '"drives":[{"_links":{"self":{"href":"/api/cluster/drives/5aa562ba-7257-5757-a6d3-24f7971c643f"}},"state":"Active","uuid":"5aa562ba-7257-5757-a6d3-24f7971c643f"},' +
+                                 '{"_links":{"self":{"href":"/api/cluster/drives/7116ca99-c93d-5551-885c-8625785f9c67"}},"state":"Active","uuid":"7116ca99-c93d-5551-885c-8625785f9c67"},' +
+                                 '{"_links":{"self":{"href":"/api/cluster/drives/3a1e3680-0c8b-5e23-8c2e-2d42acf96ea4"}},"state":"Active","uuid":"3a1e3680-0c8b-5e23-8c2e-2d42acf96ea4"},' +
+                                 '{"_links":{"self":{"href":"/api/cluster/drives/a6eec0e6-6e43-578c-aaec-e404a6a62f0d"}},"state":"Active","uuid":"a6eec0e6-6e43-578c-aaec-e404a6a62f0d"},' +
+                                 '{"_links":{"self":{"href":"/api/cluster/drives/895c2810-4ed6-5906-8ecd-d9a8f2cb560a"}},"state":"Active","uuid":"895c2810-4ed6-5906-8ecd-d9a8f2cb560a"},' +
+                                 '{"_links":{"self":{"href":"/api/cluster/drives/b9bf9d47-8a39-5491-8afc-83385c5a9761"}},"state":"Active","uuid":"b9bf9d47-8a39-5491-8afc-83385c5a9761"}],' +
+                                 '"maintenance_mode":{"state":"Disabled","variant":"None"},"management_ip":{"address":"10.117.64.253"},"role":"Storage","storage_ip":{"address":"10.117.80.157"},"version":"12.75.0.5931100"},' +
+                                 '"id":1,"name":"NHCITJJ1525","uuid":"e6c62f86-3bb4-5b9d-822f-ca60a4b64d3d"}]');
   EXIT;
   {$ELSE}
   Result := nil;
@@ -708,20 +809,20 @@ begin
   var LEndPoint := TEndpointClient.Create(FHostAddress, FHostPort, '', '', String.Format('%s?status=unassigned', [API_NODE_PATH]));
   try
     try
-      LogInfo('GET %s', [LEndPoint.FullURL]);
       Screen.Cursor := crHourglass;
       try
         LGetResponse := LEndPoint.Get;
       finally
         Screen.Cursor := crDefault;
       end;
-      LogDebug('GET Returned %s', [LGetResponse]);
       LResponseCode := LEndPoint.ResponseCode;
       LResponseText := LEndPoint.ResponseText;
+      LogInfo(String.Format('GET %s. Response: %s', [LEndPoint.FullURL, LResponseText]));
+      LogDebug('GET Returned %s', [LGetResponse]);
     except
       on E:Exception do
       begin
-        LogError('Exeption: %s: %s', [E.Message]);
+        LogError('Exeption in GET %s: %s', [LEndPoint.FullURL, E.Message]);
         EXIT;
       end;
     end;
@@ -738,55 +839,58 @@ begin
   Result := TNodeInfoList.Create;
 
   var LObj := TJSONObject.ParseJSONValue(LGetResponse) as TJSONObject;
-  try
+  if nil <> LObj then
+  begin
     try
-      Result.FromJSONArray(LObj.Values['records'] as TJSONArray);
-    except
-      LogError('Could Not parse JSON %s', [LGetResponse]);
+      try
+        Result.FromJSONArray(LObj.Values['records'] as TJSONArray);
+      except
+        LogError('Could Not parse JSON %s', [LGetResponse]);
+      end;
+    finally
+      LObj.Free;
     end;
-  finally
-    LObj.Free;
   end;
 end;
 
 function TfmMain.GetDrives(AUnassigned: Boolean = FALSE): TDriveInfoList;
 begin
   {$IFDEF DEBUG}
-  Result := TDriveInfoList.Create('[{"_links":{"self":{"href":"\/api\/cluster\/drives\/5aa562ba-7257-5757-a6d3-24f7971c643f"}},' +
-               '"detail":{"capacity":{"raw":480103981056,"usable":480038092800},"driveFailureDetail":"None","encryptionCapable":true,' +
-               '"fwVersion":"GXT5404Q","model":"SAMSUNG MZ7LM480HMHQ-00005","name":"scsi-SATA_SAMSUNG_MZ7LM48S2UJNX0K700742",'+
-               '"node":{"_links":{"self":{"href":"\/api\/cluster\/nodes\/e6c62f86-3bb4-5b9d-822f-ca60a4b64d3d"}},"id":1,"uuid":"e6c62f86-3bb4-5b9d-822f-ca60a4b64d3d"},' +
-               '"serialNumber":"scsi-SATA_SAMSUNG_MZ7LM48S2UJNX0K700742","slot":-2,"state":"Active"},"uuid":"5aa562ba-7257-5757-a6d3-24f7971c643f"},' +
+  Result := TDriveInfoList.Create('[{"_links":{"self":{"href":"\/api\/cluster\/drives\/340e2e41-48ef-5394-ba97-1ec3731fd711"}},'+
+               '"detail":{"capacity":960197124096,"driveFailureDetail":"None","encryptionCapable":true,'+
+               '"fwVersion":"CXV8202Q","model":"MZQLW960HMJP-00005","name":"nvme-sn-S3T1NX0M305640",'+
+               '"node":{"_links":{"self":{"href":"\/api\/cluster\/nodes\/09a5e748-b83f-5394-8891-bf152e9859f9"}},"id":1,"name":"NHCITJJ1718","uuid":"09a5e748-b83f-5394-8891-bf152e9859f9"},"path":"\/dev\/nvme0n1",'+
+               '"serialNumber":"nvme-sn-S3T1NX0M305640"},"inUse":false,"state":"Available","uuid":"340e2e41-48ef-5394-ba97-1ec3731fd711"},'+
 
-               '{"_links":{"self":{"href":"\/api\/cluster\/drives\/7116ca99-c93d-5551-885c-8625785f9c67"}},' +
-               '"detail":{"capacity":{"raw":480103981056,"usable":480038092800},"driveFailureDetail":"None","encryptionCapable":true,' +
-               '"fwVersion":"GXT5404Q","model":"SAMSUNG MZ7LM480HMHQ-00005","name":"scsi-SATA_SAMSUNG_MZ7LM48S2UJNX0K700596",' +
-               '"node":{"_links":{"self":{"href":"\/api\/cluster\/nodes\/e6c62f86-3bb4-5b9d-822f-ca60a4b64d3d"}},"id":1,"uuid":"e6c62f86-3bb4-5b9d-822f-ca60a4b64d3d"},' +
-               '"serialNumber":"scsi-SATA_SAMSUNG_MZ7LM48S2UJNX0K700596","slot":-2,"state":"Active"},"uuid":"7116ca99-c93d-5551-885c-8625785f9c67"},' +
+               '{"_links":{"self":{"href":"\/api\/cluster\/drives\/18aef12a-75c2-5cc3-b178-09c6004bade7"}},'+
+               '"detail":{"capacity":960197124096,"driveFailureDetail":"None","encryptionCapable":true,'+
+               '"fwVersion":"CXV8202Q","model":"MZQLW960HMJP-00005","name":"nvme-sn-S3T1NX0M305464",'+
+               '"node":{"_links":{"self":{"href":"\/api\/cluster\/nodes\/09a5e748-b83f-5394-8891-bf152e9859f9"}},"id":1,"name":"NHCITJJ1718","uuid":"09a5e748-b83f-5394-8891-bf152e9859f9"},"path":"\/dev\/nvme10n1",'+
+               '"serialNumber":"nvme-sn-S3T1NX0M305464"},"inUse":false,"state":"Available","uuid":"18aef12a-75c2-5cc3-b178-09c6004bade7"},'+
 
-               '{"_links":{"self":{"href":"\/api\/cluster\/drives\/3a1e3680-0c8b-5e23-8c2e-2d42acf96ea4"}},' +
-               '"detail":{"capacity":{"raw":480103981056,"usable":480038092800},"driveFailureDetail":"None","encryptionCapable":true,' +
-               '"fwVersion":"GXT5404Q","model":"SAMSUNG MZ7LM480HMHQ-00005","name":"scsi-SATA_SAMSUNG_MZ7LM48S2UJNX0K700608",' +
-               '"node":{"_links":{"self":{"href":"\/api\/cluster\/nodes\/e6c62f86-3bb4-5b9d-822f-ca60a4b64d3d"}},"id":1,"uuid":"e6c62f86-3bb4-5b9d-822f-ca60a4b64d3d"},' +
-               '"serialNumber":"scsi-SATA_SAMSUNG_MZ7LM48S2UJNX0K700608","slot":-2,"state":"Active"},"uuid":"3a1e3680-0c8b-5e23-8c2e-2d42acf96ea4"},' +
+               '{"_links":{"self":{"href":"\/api\/cluster\/drives\/8cbfcc7b-129d-5fd4-a915-9d03150db94b"}},'+
+               '"detail":{"capacity":960197124096,"driveFailureDetail":"None","encryptionCapable":true,'+
+               '"fwVersion":"CXV8202Q","model":"MZQLW960HMJP-00005","name":"nvme-sn-S3T1NX0M301672",'+
+               '"node":{"_links":{"self":{"href":"\/api\/cluster\/nodes\/09a5e748-b83f-5394-8891-bf152e9859f9"}},"id":1,"name":"NHCITJJ1718","uuid":"09a5e748-b83f-5394-8891-bf152e9859f9"},"path":"\/dev\/nvme11n1",'+
+               '"serialNumber":"nvme-sn-S3T1NX0M301672"},"inUse":false,"state":"Available","uuid":"8cbfcc7b-129d-5fd4-a915-9d03150db94b"},'+
 
-               '{"_links":{"self":{"href":"\/api\/cluster\/drives\/a6eec0e6-6e43-578c-aaec-e404a6a62f0d"}},' +
-               '"detail":{"capacity":{"raw":480103981056,"usable":480038092800},"driveFailureDetail":"None","encryptionCapable":true,' +
-               '"fwVersion":"GXT5404Q","model":"SAMSUNG MZ7LM480HMHQ-00005","name":"scsi-SATA_SAMSUNG_MZ7LM48S2UJNX0K700612",' +
-               '"node":{"_links":{"self":{"href":"\/api\/cluster\/nodes\/e6c62f86-3bb4-5b9d-822f-ca60a4b64d3d"}},"id":1,"uuid":"e6c62f86-3bb4-5b9d-822f-ca60a4b64d3d"},' +
-               '"serialNumber":"scsi-SATA_SAMSUNG_MZ7LM48S2UJNX0K700612","slot":-2,"state":"Active"},"uuid":"a6eec0e6-6e43-578c-aaec-e404a6a62f0d"},' +
+               '{"_links":{"self":{"href":"\/api\/cluster\/drives\/7168df77-f716-55fc-83b3-629f76e30841"}},'+
+               '"detail":{"capacity":960197124096,"driveFailureDetail":"None","encryptionCapable":true,'+
+               '"fwVersion":"CXV8202Q","model":"MZQLW960HMJP-00005","name":"nvme-sn-S3T1NX0M303955",'+
+               '"node":{"_links":{"self":{"href":"\/api\/cluster\/nodes\/09a5e748-b83f-5394-8891-bf152e9859f9"}},"id":1,"name":"NHCITJJ1718","uuid":"09a5e748-b83f-5394-8891-bf152e9859f9"},"path":"\/dev\/nvme1n1",'+
+               '"serialNumber":"nvme-sn-S3T1NX0M303955"},"inUse":false,"state":"Available","uuid":"7168df77-f716-55fc-83b3-629f76e30841"},'+
 
-               '{"_links":{"self":{"href":"\/api\/cluster\/drives\/895c2810-4ed6-5906-8ecd-d9a8f2cb560a"}},' +
-               '"detail":{"capacity":{"raw":480103981056,"usable":480038092800},"driveFailureDetail":"None","encryptionCapable":true,' +
-               '"fwVersion":"GXT5404Q","model":"SAMSUNG MZ7LM480HMHQ-00005","name":"scsi-SATA_SAMSUNG_MZ7LM48S2UJNX0K700620",' +
-               '"node":{"_links":{"self":{"href":"\/api\/cluster\/nodes\/e6c62f86-3bb4-5b9d-822f-ca60a4b64d3d"}},"id":1,"uuid":"e6c62f86-3bb4-5b9d-822f-ca60a4b64d3d"},' +
-               '"serialNumber":"scsi-SATA_SAMSUNG_MZ7LM48S2UJNX0K700620","slot":-2,"state":"Active"},"uuid":"895c2810-4ed6-5906-8ecd-d9a8f2cb560a"},' +
+               '{"_links":{"self":{"href":"\/api\/cluster\/drives\/7cb7f7d0-6c66-5b45-87a8-feaef9c6b51c"}},'+
+               '"detail":{"capacity":960197124096,"driveFailureDetail":"None","encryptionCapable":true,'+
+               '"fwVersion":"CXV8202Q","model":"MZQLW960HMJP-00005","name":"nvme-sn-S3T1NX0M305694",'+
+               '"node":{"_links":{"self":{"href":"\/api\/cluster\/nodes\/09a5e748-b83f-5394-8891-bf152e9859f9"}},"id":1,"name":"NHCITJJ1718","uuid":"09a5e748-b83f-5394-8891-bf152e9859f9"},"path":"\/dev\/nvme2n1",'+
+               '"serialNumber":"nvme-sn-S3T1NX0M305694"},"inUse":false,"state":"Available","uuid":"7cb7f7d0-6c66-5b45-87a8-feaef9c6b51c"},'+
 
-               '{"_links":{"self":{"href":"\/api\/cluster\/drives\/b9bf9d47-8a39-5491-8afc-83385c5a9761"}},' +
-               '"detail":{"capacity":{"raw":480103981056,"usable":480038092800},"driveFailureDetail":"None","encryptionCapable":true,' +
-               '"fwVersion":"GXT5404Q","model":"SAMSUNG MZ7LM480HMHQ-00005","name":"scsi-SATA_SAMSUNG_MZ7LM48S2UJNX0K700621",' +
-               '"node":{"_links":{"self":{"href":"\/api\/cluster\/nodes\/e6c62f86-3bb4-5b9d-822f-ca60a4b64d3d"}},"id":1,"uuid":"e6c62f86-3bb4-5b9d-822f-ca60a4b64d3d"},' +
-               '"serialNumber":"scsi-SATA_SAMSUNG_MZ7LM48S2UJNX0K700621","slot":-2,"state":"Active"},"uuid":"b9bf9d47-8a39-5491-8afc-83385c5a9761"}]');
+               '{"_links":{"self":{"href":"\/api\/cluster\/drives\/1e2e82d2-dd07-5c16-bf56-321731a8b3e4"}},'+
+               '"detail":{"capacity":960197124096,"driveFailureDetail":"None","encryptionCapable":true,'+
+               '"fwVersion":"CXV8202Q","model":"MZQLW960HMJP-00005","name":"nvme-sn-S3T1NX0M302436",'+
+               '"node":{"_links":{"self":{"href":"\/api\/cluster\/nodes\/09a5e748-b83f-5394-8891-bf152e9859f9"}},"id":1,"name":"NHCITJJ1718","uuid":"09a5e748-b83f-5394-8891-bf152e9859f9"},"path":"\/dev\/nvme3n1",'+
+               '"serialNumber":"nvme-sn-S3T1NX0M302436"},"inUse":false,"state":"Available","uuid":"1e2e82d2-dd07-5c16-bf56-321731a8b3e4"}]');
   EXIT;
   {$ELSE}
   Result := nil;
@@ -801,20 +905,20 @@ begin
   var LEndPoint := TEndpointClient.Create(FHostAddress, FHostPort, '', '', LResource);
   try
     try
-      LogInfo('GET %s', [LEndPoint.FullURL]);
       Screen.Cursor := crHourglass;
       try
         LGetResponse := LEndPoint.Get;
       finally
         Screen.Cursor := crDefault;
       end;
-      LogDebug('GET Returned %s', [LGetResponse]);
       LResponseCode := LEndPoint.ResponseCode;
       LResponseText := LEndPoint.ResponseText;
+      LogInfo(String.Format('GET %s. Response: %s', [LEndPoint.FullURL, LResponseText]));
+      LogDebug('GET Returned %s', [LGetResponse]);
     except
       on E:Exception do
       begin
-        LogError('Exeption: %s: %s', [E.Message]);
+        LogError('Exeption in GET %s: %s', [LEndPoint.FullURL, E.Message]);
         EXIT;
       end;
     end;
@@ -831,31 +935,56 @@ begin
   Result := TDriveInfoList.Create;
 
   var LObj := TJSONObject.ParseJSONValue(LGetResponse) as TJSONObject;
-  try
+  if nil <> LObj then
+  begin
     try
-      Result.FromJSONArray(LObj.Values['records'] as TJSONArray);
-    except
-      LogError(String.Format('Could Not parse JSON %s', [LGetResponse]));
+      try
+        Result.FromJSONArray(LObj.Values['records'] as TJSONArray);
+      except
+        LogError(String.Format('Could Not parse JSON %s', [LGetResponse]));
+      end;
+    finally
+      LObj.Free;
     end;
-  finally
-    LObj.Free;
   end;
 end;
 
 function TfmMain.GetJobs: TJobInfoList;
 begin
   {$IFDEF DEBUG}
-  Result := TJobInfoList.Create('[{"_links":{"related":{"href":"/api/cluster/"},"self":{"href":"/api/cluster/jobs/dacfd35d-0413-5343-aa92-368b078f8d48"}},' +
-		          '"description":"","end_time":"2021-02-22T17:49:15Z","message":"Create Cluster","start_time":"2021-02-22T17:47:18Z","state":"success","uuid":"dacfd35d-0413-5343-aa92-368b078f8d48"},' +
+  Result := TJobInfoList.Create('[{"_links":{"related":{"href":"/api/cluster/"},"self":{"href":"/api/cluster/jobs/fbfb4c24-ae8d-50de-bac2-1445141019b1"}},"description":"","end_time":"2021-03-10T17:59:54Z",' + '"message":"Create Cluster","start_time":"2021-03-10T17:57:58Z","state":"success","uuid":"fbfb4c24-ae8d-50de-bac2-1445141019b1"},' +
+    '{"_links":{"related":{"href":"/api/cluster/"},"self":{"href":"/api/cluster/jobs/56ab3449-8e23-56a0-ab23-d3967bff0dbf"}},"description":"","end_time":"2021-03-11T15:45:07Z","error":{"code":"xTooFewDrives",' + '"message":"Could not remove drives - Cannot fully replicate all volumes {1}"},"message":"Remove Nodes nodesToRemove={4}","start_time":"2021-03-11T15:44:59Z","state":"failure","uuid":"56ab3449-8e23-56a0-ab23-d3967bff0dbf"},' +
+    '{"_links":{"related":{"href":"/api/cluster/"},"self":{"href":"/api/cluster/jobs/31afe827-4df6-5d41-b161-0b17efcaf43e"}},"description":"","end_time":"2021-03-11T15:51:02Z","error":{"code":"xTooFewDrives",' + '"message":"Could not remove drives - Cannot fully replicate all volumes {1}"},"message":"Remove Nodes nodesToRemove={4}","start_time":"2021-03-11T15:50:54Z","state":"failure","uuid":"31afe827-4df6-5d41-b161-0b17efcaf43e"},' +
+    '{"_links":{"related":{"href":"/api/cluster/"},"self":{"href":"/api/cluster/jobs/858fe514-f9f0-5e38-8e22-92578d9a00b7"}},"description":"","end_time":"2021-03-11T15:51:28Z","error":{"code":"xTooFewDrives",' + '"message":"Could not remove drives - Cannot fully replicate all volumes {1}"},"message":"Remove Nodes nodesToRemove={4}","start_time":"2021-03-11T15:51:20Z","state":"failure","uuid":"858fe514-f9f0-5e38-8e22-92578d9a00b7"},' +
+    '{"_links":{"related":{"href":"/api/cluster/"},"self":{"href":"/api/cluster/jobs/3db799ec-67a0-5803-83b8-d7165e2a4acb"}},"description":"RemoveNodes","end_time":"2021-03-11T17:04:04Z",' + '"error":{"code":"xTooFewDrives",' +
+    '"message":"Could not remove drives - Cannot proceed with space calculations, no block drives responded: servicesToKill: {(14,=0x0)} latestBServices: {{ServiceInfo(type=block, ID=14, fireStormID=9, maxUsableCapacity=8412635357184, firstTimeStartup=false, ' +
+    'ServiceFormat=Firetap){nodeID=4 masterID=1 fireflyID=2 name=NHCITGG2715 mip=10.117.66.75 mipi=team0 cip=10.117.82.75 cipi=team1 sip=10.117.82.75 sipi=team1 uuid=d7797fce-06e2-11e9-aa11-d8c497e969bc nodeSlot= ' +
+    'chassisName=QTFCR291400F0 ' + 'chassisNameOverride= customProtectionDomainName=__default__ softwareVersion=12.75.0.5950081 platform={\"chassisType\":\"SFc100\",\"containerized\":true,\"cpuModel\":\"Intel(R) Xeon(R) Gold 5120 CPU ' +
+    '@ 2.20GHz\",\"nodeMemoryGB\":257,\"nodeType\":\"SFc100\",\"platformConfigVersion\":\"0.0.0.0\"} role=Storage fibreChannelTargetPortGroup=None virtualNetworks={} unreachableKeyServers={}}{}},' +
+    '{ServiceInfo(type=block, ID=26, fireStormID=21, maxUsableCapacity=16834210066432, firstTimeStartup=false, ServiceFormat=Firetap)' +
+    '{nodeID=1 masterID=7 fireflyID=8 name=NHCITGG2712 mip=10.117.66.72 mipi=team0 cip=10.117.82.72 cipi=team1 sip=10.117.82.72 ' +
+    'sipi=team1 uuid=3577d5ce-fc68-11e8-bb66-d8c497e80c45 nodeSlot= chassisName=QTFCR291202C5 chassisNameOverride= customProtectionDomainName=__' +
+    'default__ softwareVersion=12.75.0.5950081 platform={\"chassisType\":\"SFc100\",\"containerized\":true,\"cpuModel\":\"Intel(R) Xeon(R) Gold 5120 ' +
+    'CPU @ 2.20GHz\",\"nodeMemoryGB\":515,\"nodeType\":\"SFc100\",\"platformConfigVersion\":\"0.0.0.0\"} role=Storage fibreChannelTargetPortGroup' +
+    '=None virtualNetworks={} unreachableKeyServers={}}{}},{ServiceInfo(type=block, ID=20, fireStormID=15, maxUsableCapacity=30615814729728, firstTimeStartup=' +
+    'false, ServiceFormat=Firetap){nodeID=3 masterID=3 ' +
+    'fireflyID=4 name=NHCITGG2713 mip=10.117.66.73 mipi=team0 cip=10.117.82.73 cipi=team1 sip=10.117.82.73 sipi=team1 ' +
+    'uuid=b61e4988-e61f-11e8-a6ee-d8c497d01c74 nodeSlot= chassisName=QTFCR290802D5 chassisNameOverride= customProtectionDomainName=__default__ ' +
+    'softwareVersion=12.75.0.5950081 platform={\"chassisType\":\"SFc100\",\"containerized\":true,\"cpuModel\":\"Intel(R) ' +
+    'Xeon(R) Gold 5120 CPU @ 2.20GHz\",\"nodeMemoryGB\":707,\"nodeType\":\"SFc100\",\"platformConfigVersion\":\"0.0.0.0\"} role=Storage fibreChannelTargetPortGroup=None virtualNetworks={} ' +
+    'unreachableKeyServers={}}{}},{ServiceInfo(type=block, ID=32, fireStormID=27, maxUsableCapacity=16834210066432, firstTimeStartup=false, ' +
+    'ServiceFormat=Firetap){nodeID=2 masterID=5 fireflyID=6 name=NHCITGG2714 mip=10.117.66.74 mipi=team0 cip=10.117.82.74 ' +
+    'cipi=team1 sip=10.117.82.74 sipi=team1 uuid=93997c06-f5bb-11e8-9058-d8c497d07e7d nodeSlot= chassisName=QTFCR2912013C chassisNameOverride= customProtectionDomainName=__default__ softwareVersion=12.75.0.5950081 ' +
+    'platform={\"chassisType\":\"SFc100\",\"containerized\":true,\"cpuModel\":\"Intel(R) Xeon(R) Gold 5120 CPU @ 2.20GHz\",\"nodeMemoryGB\":515,' +
+    '\"nodeType\":\"SFc100\",\"platformConfigVersion\":\"0.0.0.0\"} role=Storage fibreChannelTargetPortGroup=None virtualNetworks={} ' +
+    'unreachableKeyServers={}}{}}} this: BlockServiceSpaceUsageInfo {  mAvailableServicesUsableCapacity={0,0} ' +
+    'mKilledServicesUsableCapacity={8412635357184,0} mUnresponsiveServicesUsableCapacity={64284234862592,0} mKnownUsedSpace={0,0} ' +
+    'mEstimatedTotalUsedSpace={0,0} mEffectiveHeadroomPercent=3 mMaxUsedSpaceRatio=0}"},"message":"Failed removal of node ex=xTooFewDrives","start_time":"2021-03-11T17:03:42Z","state":"failure","uuid":"3db799ec-67a0-5803-83b8-d7165e2a4acb"},' +
+    '{"_links":{"related":{"href":""},"self":{"href":"/api/cluster/jobs/9d15ac07-cafe-519a-b29e-6bf14c8197d2"}},"description":"","end_time":"2021-03-10T17:59:01Z","message":"","start_time":"2021-03-10T17:58:23Z","state":"success",' +
+    '"uuid":"9d15ac07-cafe-519a-b29e-6bf14c8197d2"},{"_links":{"related":{"href":"/api/volumes/72404c40-798a-5617-857d-61b57745bbf4"},' +
+    '"self":{"href":"/api/cluster/jobs/3843349b-70cd-5c63-a20c-e547d56771b9"}},"description":"Volume Creation Job","end_time":"2021-03-10T17:59:39Z",' +
+    '"message":"Volume creation complete","start_time":"2021-03-10T17:59:34Z","state":"success","uuid":"3843349b-70cd-5c63-a20c-e547d56771b9"}]');
 
-              '{"_links":{"related":{"href":""},"self":{"href":"/api/cluster/jobs/160e7a9e-30db-5284-9af4-5de7c2888403"}},' +
-		          '"description":"","end_time":"2021-02-22T17:48:29Z","message":"","start_time":"2021-02-22T17:47:55Z","state":"success","uuid":"160e7a9e-30db-5284-9af4-5de7c2888403"},' +
-
-              '{"_links":{"related":{"href":"/api/volumes/00678dd0-5f28-4880-93b0-7f131992234f"},"self":{"href":"/api/cluster/jobs/3d54b012-aad2-5fc4-baee-ce29f645c19d"}},' +
-		          '"description":"Flexvol Creation Job","end_time":"2021-02-22T17:48:59Z","message":"Volume creation complete","start_time":"2021-02-22T17:48:55Z","state":"success","uuid":"3d54b012-aad2-5fc4-baee-ce29f645c19d"},' +
-
-              '{"_links":{"related":{"href":""},"self":{"href":"/api/cluster/jobs/0a8cf06d-c5e9-50f9-9f6f-0b68a296c5c3"}},' +
-              '"description":"","end_time":"2021-02-23T00:20:52Z","message":"","start_time":"2021-02-23T00:18:52Z","state":"success","uuid":"0a8cf06d-c5e9-50f9-9f6f-0b68a296c5c3"}]');
   EXIT;
   {$ELSE}
   Result := nil;
@@ -864,23 +993,23 @@ begin
   var LResponseCode: Integer;
   var LResponseText: String;
 
-  var LEndPoint := TEndpointClient.Create(FHostAddress, FHostPort, '', '', String.Format('%s', [API_JOB_PATH]));
+  var LEndPoint := TEndpointClient.Create(FHostAddress, FHostPort, '', '', String.Format('%s?show_nested=true', [API_JOB_PATH]));
   try
     try
-      LogInfo('GET %s', [LEndPoint.FullURL]);
       Screen.Cursor := crHourglass;
       try
         LGetResponse := LEndPoint.Get;
       finally
         Screen.Cursor := crDefault;
       end;
-      LogDebug('GET Returned %s', [LGetResponse]);
       LResponseCode := LEndPoint.ResponseCode;
       LResponseText := LEndPoint.ResponseText;
+      LogInfo(String.Format('GET %s. Response: %s', [LEndPoint.FullURL, LResponseText]));
+      LogDebug('GET Returned %s', [LGetResponse]);
     except
       on E:Exception do
       begin
-        LogError('Exeption: %s: %s', [E.Message]);
+        LogError('Exeption in GET %s: %s', [LEndPoint.FullURL, E.Message]);
         EXIT;
       end;
     end;
@@ -897,14 +1026,76 @@ begin
   Result := TJobInfoList.Create;
 
   var LObj := TJSONObject.ParseJSONValue(LGetResponse) as TJSONObject;
+  if nil <> LObj then
+  begin
+    try
+      try
+        Result.FromJSONArray(LObj.Values['records'] as TJSONArray);
+      except
+        LogError(String.Format('Could Not parse JSON %s', [LGetResponse]));
+      end;
+    finally
+      LObj.Free;
+    end;
+  end;
+end;
+
+function TfmMain.GetQosPolicies: TQosPolicyList;
+begin
+  {$IFDEF DEBUG}
+  Result := TQosPolicyList.Create('[{"_links":{"self":{"href":"\/api\/cluster\/qos-policies\/9b367c57-dc30-5655-86bd-3c8f5c460424"}},"burstIOPS":15000,"burstTime":60,"curve":{"costs":[{"cost":"100","iosize":"4096"},{"cost":"160","iosize":"8192"},{"cost":"270","iosize":"16384"},' + '{"cost":"500","iosize":"32768"},{"cost":"1000","iosize":"65536"},{"cost":"1950","iosize":"131072"},{"cost":"3900","iosize":"262144"},{"cost":"7600","iosize":"524288"},{"cost":"15000","iosize":"1048576"}]},' + '"description":"DefaultClusterPolicy","maxIOPS":15000,"minIOPS":50,"uuid":"9b367c57-dc30-5655-86bd-3c8f5c460424"}]');
+  EXIT;
+  {$ELSE}
+  Result := nil;
+  {$ENDIF}
+  var LGetResponse: String;
+  var LResponseCode: Integer;
+  var LResponseText: String;
+
+  var LEndPoint := TEndpointClient.Create(FHostAddress, FHostPort, '', '', API_QOS_POLICY_PATH);
   try
     try
-      Result.FromJSONArray(LObj.Values['records'] as TJSONArray);
+      Screen.Cursor := crHourglass;
+      try
+        LGetResponse := LEndPoint.Get;
+      finally
+        Screen.Cursor := crDefault;
+      end;
+      LResponseCode := LEndPoint.ResponseCode;
+      LResponseText := LEndPoint.ResponseText;
+      LogInfo(String.Format('GET %s. Response: %s', [LEndPoint.FullURL, LResponseText]));
+      LogDebug('GET Returned %s', [LGetResponse]);
     except
-      LogError(String.Format('Could Not parse JSON %s', [LGetResponse]));
+      on E:Exception do
+      begin
+        LogError('Exeption in GET %s: %s', [LEndPoint.FullURL, E.Message]);
+        EXIT;
+      end;
     end;
   finally
-    LObj.Free;
+    LEndPoint.Free;
+  end;
+
+  if not TEndpointClient.IsReponseCodeSuccess(LResponseCode) then
+  begin
+    LogError('%s: %s', [LResponseText, LGetResponse]);
+    EXIT;
+  end;
+
+  Result := TQosPolicyList.Create;
+
+  var LObj := TJSONObject.ParseJSONValue(LGetResponse) as TJSONObject;
+  if nil <> LObj then
+  begin
+    try
+      try
+        Result.FromJSONArray(LObj.Values['records'] as TJSONArray);
+      except
+        LogError(String.Format('Could Not parse JSON %s', [LGetResponse]));
+      end;
+    finally
+      LObj.Free;
+    end;
   end;
 end;
 
@@ -933,9 +1124,10 @@ begin
       finally
         Screen.Cursor := crDefault;
       end;
-      LogDebug('POST Returned %s', [LResponse]);
       LResponseCode := LEndPoint.ResponseCode;
       LResponseText := LEndPoint.ResponseText;
+      LogDebug('POST Response: %s', [LResponseText]);
+      LogDebug('POST Returned %s', [LResponse]);
     except
       on E:Exception do
       begin
@@ -969,10 +1161,8 @@ begin
       end;
       LResponseCode := LEndPoint.ResponseCode;
       LResponseText := LEndPoint.ResponseText;
-      if TEndpointClient.IsReponseCodeSuccess(LEndPoint.ResponseCode) then
-        LogDebug('DELETE Returned %s', [LResponse])
-      else
-        LogDebug('DELETE Returned %s', [LResponseText])
+      LogDebug('DELETE Response: %s', [LResponseText]);
+      LogDebug('DELETE Returned %s', [LResponse]);
     except
       on E:Exception do
       begin
@@ -1059,10 +1249,8 @@ begin
       end;
       LResponseCode := LEndPoint.ResponseCode;
       LResponseText := LEndPoint.ResponseText;
-      if TEndpointClient.IsReponseCodeSuccess(LEndPoint.ResponseCode) then
-        LogDebug('DELETE Returned %s', [LResponse])
-      else
-        LogDebug('DELETE Returned %s', [LResponseText]);
+      LogDebug('DELETE Reponse %s', [LResponseText]);
+      LogDebug('DELETE Returned %s', [LResponse]);
     except
       on E:Exception do
       begin
@@ -1086,6 +1274,8 @@ begin
   vgClusterInfo.BeginUpdate;
   try
     vgClusterInfo.ClearRows;
+    if nil = AClusterInfo then
+      EXIT;  //Finally will still run!
 
     myCat := vgClusterInfo.Add( TcxCategoryRow ) As TcxCategoryRow;
     myCat.Properties.Caption := AClusterInfo.Name;
@@ -1127,6 +1317,54 @@ begin
     myRow.Properties.Options.Editing := FALSE;
   finally
     vgClusterInfo.EndUpdate;
+  end;
+end;
+
+procedure TfmMain.DisplayCosts(ACostList: TCostList);
+begin
+  vgCurve.BeginUpdate;
+  try
+    vgCurve.ClearRows;
+    var myCat := vgCurve.Add( TcxCategoryRow ) As TcxCategoryRow;
+    myCat.Properties.Caption := 'Costs';
+
+    if (nil = ACostList) or (0 = ACostList.Count) then
+      EXIT;  //Finally will still run!
+
+    var myRow := vgCurve.Add( TcxEditorRow ) as TcxEditorRow;
+    myRow.Properties.Caption := 'Cost';
+    myRow.Properties.DataBinding.ValueTypeClass := TcxStringValueType;
+    myRow.Properties.Value := ACostList[0].Cost;
+    myRow.Properties.Options.Editing := FALSE;
+
+    myRow := vgCurve.Add( TcxEditorRow ) as TcxEditorRow;
+    myRow.Properties.Caption := 'I/O Size';
+    myRow.Properties.DataBinding.ValueTypeClass := TcxStringValueType;
+    myRow.Properties.Value := ACostList[0].IOSize;
+    myRow.Properties.Options.Editing := FALSE;
+
+    if 1 = ACostList.Count then
+      EXIT;
+
+    for var i := 1 to (ACostList.Count - 1) do
+    begin
+      myCat := vgCurve.Add( TcxCategoryRow ) As TcxCategoryRow;
+      myCat.Properties.Caption := '';
+
+      myRow := vgCurve.Add( TcxEditorRow ) as TcxEditorRow;
+      myRow.Properties.Caption := 'Cost';
+      myRow.Properties.DataBinding.ValueTypeClass := TcxStringValueType;
+      myRow.Properties.Value := ACostList[i].Cost;
+      myRow.Properties.Options.Editing := FALSE;
+
+      myRow := vgCurve.Add( TcxEditorRow ) as TcxEditorRow;
+      myRow.Properties.Caption := 'I/O Size';
+      myRow.Properties.DataBinding.ValueTypeClass := TcxStringValueType;
+      myRow.Properties.Value := ACostList[i].IOSize;
+      myRow.Properties.Options.Editing := FALSE;
+    end;
+  finally
+    vgCurve.EndUpdate;
   end;
 end;
 
@@ -1335,6 +1573,64 @@ begin
   end;
 end;
 
+procedure TfmMain.LoadQosPoliciesGrid(AJSON: String);
+begin
+  ClearJobsGrid;
+  tvQosPolicies.BeginUpdate(lsimImmediate);
+  try
+    if (nil <> tvQosPolicies.DataController.CustomDataSource) then
+      TQosPolicyListDataSource(tvQosPolicies.DataController.CustomDataSource).Free;
+
+    tvQosPolicies.DataController.BeginFullUpdate;
+    try
+      tvQosPolicies.DataController.CustomDataSource := TQosPolicyListDataSource.Create(AJSON);
+    finally
+      tvQosPolicies.DataController.EndFullUpdate;
+    end;
+  finally
+    tvQosPolicies.EndUpdate;
+    Screen.Cursor := crDefault;
+  end;
+end;
+
+procedure TfmMain.ClearQosPoliciesGrid;
+begin
+  tvQosPolicies.BeginUpdate(lsimImmediate);
+  try
+    if (nil <> tvQosPolicies.DataController.CustomDataSource) then
+    begin
+      TQosPolicyListDataSource(tvQosPolicies.DataController.CustomDataSource).Free;
+      tvQosPolicies.DataController.CustomDataSource := nil;
+    end;
+  finally
+    tvQosPolicies.EndUpdate;
+    Screen.Cursor := crDefault;
+  end;
+end;
+
+procedure TfmMain.DisplayJobError(AErrorCode, AErrorMessage: String);
+var
+  myRow : TcxEditorRow;
+begin
+  vgJobError.BeginUpdate;
+  try
+    vgJobError.ClearRows;
+    myRow := vgJobError.Add( TcxEditorRow ) as TcxEditorRow;
+    myRow.Properties.Caption := 'Code';
+    myRow.Properties.DataBinding.ValueTypeClass := TcxStringValueType;
+    myRow.Properties.Value := AErrorCode;
+    myRow.Properties.Options.Editing := FALSE;
+
+    myRow := vgJobError.Add( TcxEditorRow ) as TcxEditorRow;
+    myRow.Properties.Caption := 'Message';
+    myRow.Properties.DataBinding.ValueTypeClass := TcxStringValueType;
+    myRow.Properties.Value := AErrorMessage;
+    myRow.Properties.Options.Editing := FALSE;
+  finally
+    vgJobError.EndUpdate;
+  end;
+end;
+
 procedure TfmMain.SetBaseURL(AAddress: String; APort: WORD);
 begin
   FHostAddress := AAddress;
@@ -1366,19 +1662,30 @@ begin
   end;
 
   var LNodeList := GetNodes;
-  try
-    LoadNodeGrid(LNodeList.AsJSONArray);
-  finally
-    LNodeList.Free;
+  if nil = LNodeList then
+  begin
+    ClearNodeGrid;
+  end else
+  begin
+    try
+      LoadNodeGrid(LNodeList.AsJSONArray);
+    finally
+      LNodeList.Free;
+    end;
   end;
 
   LNodeList := GetPendingNodes;
-  try
-    LoadPendingNodeGrid(LNodeList.AsJSONArray);
-  finally
-    LNodeList.Free;
+  if nil = LNodeList then
+  begin
+    ClearNodeGrid;
+  end else
+  begin
+    try
+      LoadPendingNodeGrid(LNodeList.AsJSONArray);
+    finally
+      LNodeList.Free;
+    end;
   end;
-
   pcCluster.ActivePageIndex := 0;
 end;
 
@@ -1461,6 +1768,17 @@ begin
   pcCluster.ActivePageIndex := 2;
 end;
 
+procedure TfmMain.btnQosPoliciesClick(Sender: TObject);
+begin
+  var LQosPolicyList := GetQosPolicies;
+  try
+    LoadQosPoliciesGrid(LQosPolicyList.AsJSONArray);
+  finally
+    LQosPolicyList.Free;
+  end;
+  pcCluster.ActivePageIndex := 3;
+end;
+
 procedure TfmMain.ppmiAddSelectedDrivesClick(Sender: TObject);
 begin
   var LDrives := TDriveInfoList.Create;
@@ -1487,6 +1805,36 @@ begin
   end;
   LogInfo('Deleted %d drive(s)', [tvDrives.Controller.SelectedRecordCount]);
   btnDrives.Click;
+end;
+
+procedure TfmMain.tvJobsFocusedRecordChanged(Sender: TcxCustomGridTableView;
+  APrevFocusedRecord, AFocusedRecord: TcxCustomGridRecord;
+  ANewItemRecordFocusingChanged: Boolean);
+begin
+  if 0 = tvJobs.Controller.SelectedRecordCount then
+  begin
+    DisplayJobError(String.Empty, String.Empty);
+    EXIT;
+  end;
+
+  var LRecordIndex := AFocusedRecord.RecordIndex;
+  var LJob := TJobListDataSource(tvJobs.DataController.CustomDataSource).Jobs[LRecordIndex];
+  DisplayJobError(LJob.ErrorInfo.ErrorCode, LJob.ErrorInfo.ErrorMessage);
+end;
+
+procedure TfmMain.tvQosPoliciesFocusedRecordChanged(
+  Sender: TcxCustomGridTableView; APrevFocusedRecord,
+  AFocusedRecord: TcxCustomGridRecord; ANewItemRecordFocusingChanged: Boolean);
+begin
+  if 0 = tvQosPolicies.Controller.SelectedRecordCount then
+  begin
+    DisplayCosts(nil);
+    EXIT;
+  end;
+
+  var LRecordIndex := AFocusedRecord.RecordIndex;
+  var LQosPolicy := TQosPolicyListDataSource(tvQosPolicies.DataController.CustomDataSource).QosPolicies[LRecordIndex];
+  DisplayCosts(LQosPolicy.Curve.Costs);
 end;
 
 end.

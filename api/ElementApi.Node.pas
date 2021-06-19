@@ -23,6 +23,7 @@ type
     FState: String;
     FUUID: String;
     FNodeUUID: String;
+    procedure Init;
     function ToJson: String;
     procedure FromJson(AValue: String);
   public
@@ -36,6 +37,24 @@ type
     property State: String read FState write FState;
     property UUID: String read FUUID write FUUID;
     property NodeUUID: String read FNodeUUID write FNodeUUID; //Not part of JSON
+    property AsJson: String read ToJson write FromJson;
+  end;
+
+  TMaintenceModeInfo = class
+  protected
+    FMaintenceModeState: String;
+    FMaintenceModeVariant: String;
+    procedure Init;
+    function ToJson: String;
+    procedure FromJson(AValue: String);
+  public
+    constructor Create; overload; virtual;
+    constructor Create(AJSONString: String); overload; virtual;
+    constructor Create(AMaintenceModeInfo: TMaintenceModeInfo); overload; virtual;
+    function ToJsonObject: TJSONObject;
+    procedure FromJsonObject(AJSONObject: TJSONObject);
+    property MaintenceModeState: String read FMaintenceModeState write FMaintenceModeState;
+    property MaintenceModeVariant: String read FMaintenceModeVariant write FMaintenceModeVariant;
     property AsJson: String read ToJson write FromJson;
   end;
 
@@ -69,20 +88,24 @@ type
   protected
     FClusterIP: String;
     FDrives: TNodeDriveInfoList;
+    FMaintenceModeInfo: TMaintenceModeInfo;
     FManagementIP: String;
     FStorageIP: String;
     FRole: String;
     FVersion: String;
+    procedure Init;
     function ToJson: String;
     procedure FromJson(AValue: String);
   public
     constructor Create; overload; virtual;
     constructor Create(AJSONString: String); overload; virtual;
+    constructor Create(ANodeInfoDetail: TNodeInfoDetail); overload; virtual;
     destructor Destroy; override;
     function ToJsonObject: TJSONObject;
     procedure FromJsonObject(AJSONObject: TJSONObject);
     property ClusterIP: String read FClusterIP write FClusterIP;
     property Drives: TNodeDriveInfoList read FDrives;
+    property MaintenceModeInfo: TMaintenceModeInfo read FMaintenceModeInfo;
     property ManagementIP: String read FManagementIP write FManagementIP;
     property Role: String read FRole write FRole;
     property StorageIP: String read FStorageIP write FStorageIP;
@@ -95,18 +118,22 @@ type
     FLinks: TLinks;
     FNodeInfoDetail: TNodeInfoDetail;
     FNodeID: Integer;
+    FName: String;
     FUUID: String;
+    procedure Init;
     function ToJson: String;
     procedure FromJson(AValue: String);
   public
     constructor Create; overload; virtual;
     constructor Create(AJSONString: String); overload; virtual;
+    constructor Create(ANodeInfo: TNodeInfo); overload; virtual;
     destructor Destroy; override;
     function ToJsonObject: TJSONObject;
     procedure FromJsonObject(AJSONObject: TJSONObject);
     property Links: TLinks read FLinks;
     property NodeInfoDetail: TNodeInfoDetail read FNodeInfoDetail;
     property NodeID: Integer read FNodeID write FNodeID;
+    property Name: String read FName write FName;
     property UUID: String read FUUID write FUUID;
     property AsJson: String read ToJson write FromJson;
   end;
@@ -124,6 +151,7 @@ type
     { Pulblic declarations }
     constructor Create; overload; virtual;
     constructor Create(AJSONString: String); overload; virtual;
+    constructor Create(ANodeInfoList: TNodeInfoList); overload; virtual;
     destructor Destroy; override;
     function ToJSONArray: TJSONArray;
     procedure FromJSONArray(AJsonArray: TJSONArray);
@@ -142,6 +170,7 @@ constructor TNodeDriveInfo.Create;
 begin
   inherited Create;
   FLinks := TLinks.Create;
+  Init;
 end;
 
 constructor TNodeDriveInfo.Create(AJSONString: String);
@@ -164,6 +193,13 @@ destructor TNodeDriveInfo.Destroy;
 begin
   FLinks.Free;
   inherited Create;
+end;
+
+procedure TNodeDriveInfo.Init;
+begin
+  FLinks.Clear;
+  FState := String.Empty;
+  FUUID := String.Empty;
 end;
 
 function TNodeDriveInfo.ToJson: String;
@@ -196,9 +232,7 @@ end;
 
 procedure TNodeDriveInfo.FromJsonObject(AJSONObject: TJSONObject);
 begin
-  FLinks.Clear;
-  FState := String.Empty;
-  FUUID := String.Empty;
+  Init;
 
   if nil <> AJSONObject.Values['_links'] then
     FLinks.FromJsonObject(AJSONObject.Values['_links'] as TJSONObject);
@@ -311,24 +345,111 @@ begin
 end;
 {$ENDREGION}
 
+{$REGION 'TMaintenceModeInfo'}
+constructor TMaintenceModeInfo.Create;
+begin
+  inherited Create;
+  Init;
+end;
+
+constructor TMaintenceModeInfo.Create(AJSONString: String);
+begin
+  inherited Create;
+  FromJson(AJSONString);
+end;
+
+constructor TMaintenceModeInfo.Create(AMaintenceModeInfo: TMaintenceModeInfo);
+begin
+  inherited Create;
+  FMaintenceModeState := AMaintenceModeInfo.MaintenceModeState;
+  FMaintenceModeVariant := AMaintenceModeInfo.FMaintenceModeVariant;
+end;
+
+procedure TMaintenceModeInfo.Init;
+begin
+  FMaintenceModeState := String.Empty;
+  FMaintenceModeVariant := String.Empty;
+end;
+
+function TMaintenceModeInfo.ToJson: String;
+begin
+  var LObj := Self.ToJSONObject;
+  try
+    Result := LObj.ToJSON;
+  finally
+    LObj.Free;
+  end;
+end;
+
+procedure TMaintenceModeInfo.FromJson(AValue: String);
+begin
+  var LObj := TJSONObject.ParseJSONValue(AValue) as TJSONObject;
+  try
+    FromJSONObject(LObj)
+  finally
+    LObj.Free;
+  end;
+end;
+
+function TMaintenceModeInfo.ToJsonObject: TJSONObject;
+begin
+  Result := TJSONObject.Create;
+  Result.AddPair('state', FMaintenceModeState);
+  Result.AddPair('variant', FMaintenceModeVariant);
+end;
+
+procedure TMaintenceModeInfo.FromJsonObject(AJSONObject: TJSONObject);
+begin
+  if (nil <> AJSONObject.Values['state']) then
+    FMaintenceModeState := AJSONObject.Values['state'].Value;
+  if (nil <> AJSONObject.Values['variant']) then
+    FMaintenceModeVariant := AJSONObject.Values['variant'].Value;
+end;
+
+{$ENDREGION}
+
 {$REGION 'TNodeInfoDetail'}
 constructor TNodeInfoDetail.Create;
 begin
   inherited Create;
   FDrives := TNodeDriveInfoList.Create;
+  FMaintenceModeInfo := TMaintenceModeInfo.Create;
+  Init;
 end;
 
 constructor TNodeInfoDetail.Create(AJSONString: String);
 begin
   inherited Create;
   FDrives := TNodeDriveInfoList.Create;
+  FMaintenceModeInfo := TMaintenceModeInfo.Create;
   FromJson(AJSONString);
+end;
+
+constructor TNodeInfoDetail.Create(ANodeInfoDetail: TNodeInfoDetail);
+begin
+  inherited Create;
+  FDrives := TNodeDriveInfoList.Create(ANodeInfoDetail.Drives) ;
+  FMaintenceModeInfo := TMaintenceModeInfo.Create(ANodeInfoDetail.MaintenceModeInfo);
 end;
 
 destructor TNodeInfoDetail.Destroy;
 begin
+  FMaintenceModeInfo.Free;
   FDrives.Free;
   inherited Destroy;
+end;
+
+procedure TNodeInfoDetail.Init;
+begin
+  FClusterIP := String.Empty;
+  FDrives.Clear;
+  FMaintenceModeInfo.MaintenceModeState := String.Empty;
+  FMaintenceModeInfo.MaintenceModeVariant := String.Empty;
+
+  FManagementIP := String.Empty;
+  FStorageIP := String.Empty;
+  FRole := String.Empty;
+  FVersion := String.Empty;
 end;
 
 function TNodeInfoDetail.ToJson: String;
@@ -361,6 +482,8 @@ begin
 
   Result.AddPair('drives', FDrives.ToJSONArray);
 
+  Result.AddPair('maintenance_mode', FMaintenceModeInfo.ToJsonObject);
+
   LIPObj := TJSONObject.Create;
   LIPObj.AddPair('address', FManagementIP);
   Result.AddPair('management_ip', LIPObj);
@@ -376,11 +499,15 @@ end;
 
 procedure TNodeInfoDetail.FromJsonObject(AJSONObject: TJSONObject);
 begin
+  Init;
   if (nil <> AJSONObject.Values['cluster_ip']) and (nil <> (AJSONObject.Values['cluster_ip'] as TJSONObject).Values['address']) then
     FClusterIP := (AJSONObject.Values['cluster_ip'] as TJSONObject).Values['address'].Value;
 
   if nil <> AJSONObject.Values['drives'] then
     FDrives.FromJSONArray(AJSONObject.Values['drives'] as TJSONArray);
+
+  if (nil <> AJSONObject.Values['maintenance_mode']) then
+    FMaintenceModeInfo.FromJsonObject(AJSONObject.Values['maintenance_mode'] as TJSONObject);
 
   if (nil <> AJSONObject.Values['management_ip']) and (nil <> (AJSONObject.Values['management_ip'] as TJSONObject).Values['address']) then
     FManagementIP := (AJSONObject.Values['management_ip'] as TJSONObject).Values['address'].Value;
@@ -412,6 +539,13 @@ begin
   FromJson(AJSONString);
 end;
 
+constructor TNodeInfo.Create(ANodeInfo: TNodeInfo);
+begin
+  inherited Create;
+  FLinks := TLinks.Create(ANodeInfo.Links);
+  FNodeInfoDetail := TNodeInfoDetail.Create(ANodeInfo.NodeInfoDetail);
+end;
+
 destructor TNodeInfo.Destroy;
 begin
   if nil <> FNodeInfoDetail then
@@ -421,6 +555,14 @@ begin
     FLinks.Free;
 
   inherited Destroy;
+end;
+
+procedure TNodeInfo.Init;
+begin
+  FLinks.Clear;
+  FNodeID := 0;
+  FName := String.Empty;
+  FUUID := String.Empty;
 end;
 
 function TNodeInfo.ToJson: String;
@@ -449,17 +591,21 @@ begin
   Result.AddPair('_links', FLinks.ToJsonObject);
   Result.AddPair('detail', FNodeInfoDetail.ToJsonObject);
   Result.AddPair('id', TJsonNumber.Create(FNodeID));
+  Result.AddPair('name', FName);
   Result.AddPair('uuid', FUUID);
 end;
 
 procedure TNodeInfo.FromJsonObject(AJSONObject: TJSONObject);
 begin
+  Init;
   if nil <> AJSONObject.Values['_links'] then
     FLinks.FromJsonObject(AJSONObject.Values['_links'] as TJSONObject);
   if nil <> AJSONObject.Values['detail'] then
     FNodeInfoDetail.FromJsonObject(AJSONObject.Values['detail'] as TJSONObject);
   if nil <> AJsonObject.Values['id'] then
     FNodeID := StrToIntDef(AJsonObject.Values['id'].Value, -1);
+  if nil <> AJsonObject.Values['name'] then
+    FName := AJsonObject.Values['name'].Value;
   if nil <> AJsonObject.Values['uuid'] then
     FUUID := AJsonObject.Values['uuid'].Value;
 
@@ -480,6 +626,13 @@ begin
   inherited Create;
   FList := TObjectList<TNodeInfo>.Create(TRUE);
   DecodeFromJSONArrayString(AJSONString);
+end;
+
+constructor TNodeInfoList.Create(ANodeInfoList: TNodeInfoList);
+begin
+  FList := TObjectList<TNodeInfo>.Create(TRUE);
+  for var i := 0 to (ANodeInfoList.Count - 1) do
+    FList.Add(TNodeInfo.Create(ANodeInfoList[i]));
 end;
 
 destructor TNodeInfoList.Destroy;

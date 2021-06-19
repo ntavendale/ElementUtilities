@@ -48,7 +48,9 @@ uses
   BaseModalForm in '..\Common\Forms\BaseModalForm.pas' {fmBaseModalForm},
   BaseURLSelect in 'BaseURLSelect.pas' {fmBaseURLSelect},
   ClusterDetail in 'ClusterDetail.pas' {fmClusterDetail},
-  ElementApi.Job in '..\api\ElementApi.Job.pas';
+  ElementApi.Job in '..\api\ElementApi.Job.pas',
+  ElementApi.Error in '..\api\ElementApi.Error.pas',
+  ElementApi.QosPolicy in '..\api\ElementApi.QosPolicy.pas';
 
 {$R *.res}
 
