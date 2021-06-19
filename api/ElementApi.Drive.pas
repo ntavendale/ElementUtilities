@@ -451,8 +451,6 @@ begin
   if String.IsNullOrWhitespace(AValue) then
     EXIT;
   var LArray := TJSONObject.ParseJSONValue(AValue) as TJSONArray;
-  if nil = LArray then
-    raise Exception.Create('Oops');
   try
     Self.FromJSONArray(LArray)
   finally
