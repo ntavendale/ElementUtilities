@@ -58,6 +58,24 @@ type
     property AsJson: String read ToJson write FromJson;
   end;
 
+  TNodeStatus = class
+  protected
+    FReachable: Boolean;
+    FState: String;
+    procedure Init;
+    function ToJson: String;
+    procedure FromJson(AValue: String);
+  public
+    constructor Create; overload; virtual;
+    constructor Create(AJSONString: String); overload; virtual;
+    constructor Create(ANodeStatus: TNodeStatus); overload; virtual;
+    function ToJsonObject: TJSONObject;
+    procedure FromJsonObject(AJSONObject: TJSONObject);
+    property Reachable: Boolean read FReachable write FReachable;
+    property State: String read FState write FState;
+    property AsJson: String read ToJson write FromJson;
+  end;
+
   TNodeDriveInfoList = class
   protected
     { Protected declarations }
@@ -89,6 +107,7 @@ type
     FClusterIP: String;
     FDrives: TNodeDriveInfoList;
     FMaintenceModeInfo: TMaintenceModeInfo;
+    FNodeStatus: TNodeStatus;
     FManagementIP: String;
     FStorageIP: String;
     FRole: String;
@@ -106,6 +125,7 @@ type
     property ClusterIP: String read FClusterIP write FClusterIP;
     property Drives: TNodeDriveInfoList read FDrives;
     property MaintenceModeInfo: TMaintenceModeInfo read FMaintenceModeInfo;
+    property Status: TNodeStatus read FNodeStatus;
     property ManagementIP: String read FManagementIP write FManagementIP;
     property Role: String read FRole write FRole;
     property StorageIP: String read FStorageIP write FStorageIP;
@@ -405,7 +425,69 @@ begin
   if (nil <> AJSONObject.Values['variant']) then
     FMaintenceModeVariant := AJSONObject.Values['variant'].Value;
 end;
+{$ENDREGION}
 
+{$REGION 'TNodeStatus'}
+constructor TNodeStatus.Create;
+begin
+  inherited Create;
+  Init;
+end;
+
+constructor TNodeStatus.Create(AJSONString: String);
+begin
+  inherited Create;
+  FromJson(AJSONString);
+end;
+
+constructor TNodeStatus.Create(ANodeStatus: TNodeStatus);
+begin
+  inherited Create;
+  FReachable := ANodeStatus.Reachable;
+  FState := ANodeStatus.State;
+end;
+
+procedure TNodeStatus.Init;
+begin
+  FReachable := FALSE;
+  FState := String.Empty;
+end;
+
+function TNodeStatus.ToJson: String;
+begin
+  var LObj := Self.ToJSONObject;
+  try
+    Result := LObj.ToJSON;
+  finally
+    LObj.Free;
+  end;
+end;
+
+procedure TNodeStatus.FromJson(AValue: String);
+begin
+  var LObj := TJSONObject.ParseJSONValue(AValue) as TJSONObject;
+  try
+    FromJSONObject(LObj)
+  finally
+    LObj.Free;
+  end;
+end;
+
+function TNodeStatus.ToJsonObject: TJSONObject;
+begin
+  Result := TJSONObject.Create;
+  Result.AddPair('reachable', TJsonBool.Create(FReachable));
+  Result.AddPair('state', FState);
+end;
+
+procedure TNodeStatus.FromJsonObject(AJSONObject: TJSONObject);
+begin
+  Init;
+  if (nil <> AJSONObject.Values['state']) then
+    FState := AJSONObject.Values['state'].Value;
+  if (nil <> AJSONObject.Values['reachable']) then
+    FReachable := ('TRUE' = AJSONObject.Values['reachable'].Value.ToUpper);
+end;
 {$ENDREGION}
 
 {$REGION 'TNodeInfoDetail'}
@@ -414,6 +496,7 @@ begin
   inherited Create;
   FDrives := TNodeDriveInfoList.Create;
   FMaintenceModeInfo := TMaintenceModeInfo.Create;
+  FNodeStatus := TNodeStatus.Create;
   Init;
 end;
 
@@ -422,6 +505,7 @@ begin
   inherited Create;
   FDrives := TNodeDriveInfoList.Create;
   FMaintenceModeInfo := TMaintenceModeInfo.Create;
+  FNodeStatus := TNodeStatus.Create;
   FromJson(AJSONString);
 end;
 
@@ -430,10 +514,12 @@ begin
   inherited Create;
   FDrives := TNodeDriveInfoList.Create(ANodeInfoDetail.Drives) ;
   FMaintenceModeInfo := TMaintenceModeInfo.Create(ANodeInfoDetail.MaintenceModeInfo);
+  FNodeStatus := TNodeStatus.Create(ANodeInfoDetail.Status);
 end;
 
 destructor TNodeInfoDetail.Destroy;
 begin
+  FNodeStatus.Free;
   FMaintenceModeInfo.Free;
   FDrives.Free;
   inherited Destroy;
@@ -450,6 +536,9 @@ begin
   FStorageIP := String.Empty;
   FRole := String.Empty;
   FVersion := String.Empty;
+
+  FNodeStatus.State := String.Empty;
+  FNodeStatus.Reachable := FALSE;
 end;
 
 function TNodeInfoDetail.ToJson: String;
@@ -490,6 +579,8 @@ begin
 
   Result.AddPair('role', FRole);
 
+  Result.AddPair('status', FNodeStatus.ToJsonObject);
+
   LIPObj := TJSONObject.Create;
   LIPObj.AddPair('address', FStorageIP);
   Result.AddPair('storage_ip', LIPObj);
@@ -514,6 +605,9 @@ begin
 
   if nil <> AJSONObject.Values['role'] then
     FRole := AJSONObject.Values['role'].Value;
+
+  if (nil <> AJSONObject.Values['status']) then
+    FNodeStatus.FromJsonObject(AJSONObject.Values['status'] as TJSONObject);
 
   if (nil <> AJSONObject.Values['storage_ip']) and (nil <> (AJSONObject.Values['storage_ip'] as TJSONObject).Values['address']) then
     FStorageIP := (AJSONObject.Values['storage_ip'] as TJSONObject).Values['address'].Value;

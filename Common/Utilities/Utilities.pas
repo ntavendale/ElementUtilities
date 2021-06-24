@@ -16,6 +16,8 @@ uses
 
 const
   WM_MSG_RECONFIGURE = WM_USER + $0001;
+  WM_REFRESH_MSG     = WM_USER + $0002;
+
 {$IFDEF ELEMENT_UI}
   APP_NAME            = 'ElementUI';
 {$ENDIF}

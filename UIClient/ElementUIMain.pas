@@ -12,10 +12,10 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes,
   System.SyncObjs, System.Generics.Collections, System.JSON, Vcl.Graphics, Vcl.Controls,
-  Vcl.Forms, Vcl.Dialogs, dxSkinsCore, dxSkinBasic, dxSkinBlack, dxSkinBlue, dxSkinBlueprint,
-  dxSkinCaramel, dxSkinCoffee, dxSkinDarkroom, dxSkinDarkSide, dxSkinDevExpressDarkStyle,
-  dxSkinDevExpressStyle, dxSkinFoggy, dxSkinGlassOceans, dxSkinHighContrast,
-  dxSkiniMaginary, dxSkinLilian, dxSkinLiquidSky, dxSkinLondonLiquidSky,
+  Vcl.Forms, Vcl.Dialogs, System.IOUtils, dxSkinsCore, dxSkinBasic, dxSkinBlack,
+  dxSkinBlue, dxSkinBlueprint, dxSkinCaramel, dxSkinCoffee, dxSkinDarkroom, dxSkinDarkSide,
+  dxSkinDevExpressDarkStyle, dxSkinDevExpressStyle, dxSkinFoggy, dxSkinGlassOceans,
+  dxSkinHighContrast, dxSkiniMaginary, dxSkinLilian, dxSkinLiquidSky, dxSkinLondonLiquidSky,
   dxSkinMcSkin, dxSkinMetropolis, dxSkinMetropolisDark, dxSkinMoneyTwins,
   dxSkinOffice2007Black, dxSkinOffice2007Blue, dxSkinOffice2007Green,
   dxSkinOffice2007Pink, dxSkinOffice2007Silver, dxSkinOffice2010Black,
@@ -58,6 +58,20 @@ type
     destructor Destroy; override;
     procedure AddLog(AValue: String);
     property LogWriteProc: TLogWriteProc read FLogWriteProc write FLogWriteProc;
+  end;
+
+  TDataRefreshThread = class(TThread)
+  private
+    FFinishEvent: THandle;
+    FRefreshSeconds: Integer;
+    FFormHandle: THandle;
+  protected
+    procedure TerminatedSet; override;
+    procedure Execute; override;
+  public
+    constructor Create; reintroduce; overload; virtual;
+    constructor Create(CreateSuspended: Boolean; ARefreshSeconds: Integer; AFormHandle: THandle); reintroduce; overload; virtual;
+    destructor Destroy; override;
   end;
 
   TNodeListDataSource = class(TcxCustomDataSource)
@@ -133,7 +147,7 @@ type
     btnSaveLog: TdxBarLargeButton;
     btnClusterInfo: TdxBarLargeButton;
     dxBarLargeButton1: TdxBarLargeButton;
-    btnHelpGuide: TdxBarLargeButton;
+    btnRefresh: TdxBarLargeButton;
     btnSetEnglish: TdxBarLargeButton;
     btnSetGerman: TdxBarLargeButton;
     btnSetFrench: TdxBarLargeButton;
@@ -246,6 +260,10 @@ type
     colQosMinIOPS: TcxGridColumn;
     colQosPoliciesUUID: TcxGridColumn;
     lvQosPolicies: TcxGridLevel;
+    colReachable: TcxGridColumn;
+    colState: TcxGridColumn;
+    colPendingNodeState: TcxGridColumn;
+    colPendingNodeReachable: TcxGridColumn;
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FormShow(Sender: TObject);
     procedure btnClusterInfoClick(Sender: TObject);
@@ -264,10 +282,12 @@ type
     procedure tvQosPoliciesFocusedRecordChanged(Sender: TcxCustomGridTableView;
       APrevFocusedRecord, AFocusedRecord: TcxCustomGridRecord;
       ANewItemRecordFocusingChanged: Boolean);
+    procedure btnRefreshClick(Sender: TObject);
   private
     { Private declarations }
     FLanguageID: Integer;
     FLogReceptionThread: TLogReceptionThread;
+    FRefreshThread: TDataRefreshThread;
     FHostAddress: String;
     FHostPort: WORD;
     procedure WriteLog(AValue: String);
@@ -296,6 +316,14 @@ type
     procedure LoadQosPoliciesGrid(AJSON: String);
     procedure ClearQosPoliciesGrid;
     procedure DisplayJobError(AErrorCode, AErrorMessage: String);
+  protected
+    procedure LoadClusterAndNodes;
+    procedure LoadDrives;
+    procedure LoadJobs;
+    procedure LoadQosPolicies;
+    procedure StartRefreshThread;
+    procedure StopRefreshThread;
+    procedure OnRefreshRequest(var Msg: TMessage); message WM_REFRESH_MSG;
   public
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
@@ -403,6 +431,48 @@ begin
 end;
 {$ENDREGION}
 
+{$REGION 'TDataRefreshThread'}
+constructor TDataRefreshThread.Create;
+begin
+  Create(TRUE);
+end;
+
+constructor TDataRefreshThread.Create(CreateSuspended: Boolean; ARefreshSeconds: Integer; AFormHandle: THandle);
+begin
+  inherited Create(CreateSuspended);
+  FFinishEvent := CreateEvent(nil, TRUE, FALSE, nil);
+  FRefreshSeconds := ARefreshSeconds;
+  FFormHandle := AFormHandle;
+end;
+
+destructor TDataRefreshThread.Destroy;
+begin
+  CloseHandle(FFinishEvent);
+  inherited Destroy;
+end;
+
+procedure TDataRefreshThread.TerminatedSet;
+begin
+  SetEvent( FFinishEvent );
+end;
+
+procedure TDataRefreshThread.Execute;
+begin
+  while not Terminated do
+  begin
+    case WaitForSingleObject(FFinishEvent, FRefreshSeconds * 1000) of
+    WAIT_TIMEOUT:SendMessage(FFormHandle, WM_REFRESH_MSG, 0, 0);
+    WAIT_OBJECT_0: BREAK;
+    WAIT_FAILED: begin
+        var LErr := GetLastError;
+        LogError('WaitForSingleObject Falied. Error Code %d: %s', [LErr, SysErrorMessage(LErr)]);
+      end;
+    WAIT_ABANDONED: LogError('WaitForSingleObject Abandoned. The progreammer fucked up!'); //Shoudn't happen.
+    end;
+  end;
+end;
+{$ENDREGION}
+
 {$REGION 'TNodeListDataSource'}
 constructor TNodeListDataSource.Create(AJSON: String);
 begin
@@ -443,6 +513,8 @@ begin
     5: Result := LRec.UUID;
     6: Result := LRec.NodeInfoDetail.Role;
     7: Result := LRec.NodeInfoDetail.Version;
+    8: Result := LRec.NodeInfoDetail.Status.Reachable;
+    9: Result := LRec.NodeInfoDetail.Status.State;
   end;
 end;
 {$ENDREGION}
@@ -646,7 +718,7 @@ begin
     LogInfo(String.Format('OpenSSL Path set to %s', [LPath]));
   end;
 
-  barHelp.Visible := FALSE;
+  barHelp.Visible := TRUE;
   tsClusterInfo.TabVisible := FALSE;
   tsDrives.TabVisible := FALSE;
   tsJobs.TabVisible := FALSE;
@@ -655,6 +727,7 @@ end;
 
 destructor TfmMain.Destroy;
 begin
+  StopRefreshThread;
   FLogReceptionThread.Terminate;
   FLogReceptionThread.Free;
   inherited Destroy;
@@ -664,6 +737,21 @@ end;
 procedure TfmMain.WriteLog(AValue: String);
 begin
   memLog.Lines.Add(AValue);
+  if memLog.Lines.Count >= 5000 then
+  begin
+    var LFile := IncludeTrailingPathDelimiter(TUtilities.MyDocumentsDir) + 'ElementUI.log';
+    try
+      TFile.AppendAllText(LFile, memLog.Lines.Text);
+      memLog.Lines.Clear;
+      memLog.Lines.Add(String.Format('Log purged to file: %s', [LFile]));
+    except
+      on E:Exception do
+      begin
+        memLog.Lines.Clear;
+        memLog.Lines.Add(String.Format('Error purging to file: %s. %s', [LFile, E.Message]));
+      end;
+    end;
+  end;
 end;
 
 function TfmMain.GetClusterInfo: TClusterInfo;
@@ -729,7 +817,7 @@ begin
                                  '{"_links":{"self":{"href":"/api/cluster/drives/a6eec0e6-6e43-578c-aaec-e404a6a62f0d"}},"state":"Active","uuid":"a6eec0e6-6e43-578c-aaec-e404a6a62f0d"},' +
                                  '{"_links":{"self":{"href":"/api/cluster/drives/895c2810-4ed6-5906-8ecd-d9a8f2cb560a"}},"state":"Active","uuid":"895c2810-4ed6-5906-8ecd-d9a8f2cb560a"},' +
                                  '{"_links":{"self":{"href":"/api/cluster/drives/b9bf9d47-8a39-5491-8afc-83385c5a9761"}},"state":"Active","uuid":"b9bf9d47-8a39-5491-8afc-83385c5a9761"}],' +
-                                 '"maintenance_mode":{"state":"Disabled","variant":"None"},"management_ip":{"address":"10.117.64.253"},"role":"Storage","storage_ip":{"address":"10.117.80.157"},"version":"12.75.0.5931100"},' +
+                                 '"maintenance_mode":{"state":"Disabled","variant":"None"},"management_ip":{"address":"10.117.64.253"},"role":"Storage","status":{"reachable":true,"state":"Added"},"storage_ip":{"address":"10.117.80.157"},"version":"12.75.0.5931100"},' +
                                  '"id":1,"name":"NHCITJJ1525","uuid":"e6c62f86-3bb4-5b9d-822f-ca60a4b64d3d"}]');
   EXIT;
   {$ELSE}
@@ -796,7 +884,7 @@ begin
                                  '{"_links":{"self":{"href":"/api/cluster/drives/a6eec0e6-6e43-578c-aaec-e404a6a62f0d"}},"state":"Active","uuid":"a6eec0e6-6e43-578c-aaec-e404a6a62f0d"},' +
                                  '{"_links":{"self":{"href":"/api/cluster/drives/895c2810-4ed6-5906-8ecd-d9a8f2cb560a"}},"state":"Active","uuid":"895c2810-4ed6-5906-8ecd-d9a8f2cb560a"},' +
                                  '{"_links":{"self":{"href":"/api/cluster/drives/b9bf9d47-8a39-5491-8afc-83385c5a9761"}},"state":"Active","uuid":"b9bf9d47-8a39-5491-8afc-83385c5a9761"}],' +
-                                 '"maintenance_mode":{"state":"Disabled","variant":"None"},"management_ip":{"address":"10.117.64.253"},"role":"Storage","storage_ip":{"address":"10.117.80.157"},"version":"12.75.0.5931100"},' +
+                                 '"maintenance_mode":{"state":"Disabled","variant":"None"},"management_ip":{"address":"10.117.64.253"},"role":"Storage","status":{"reachable":true,"state":"Pending"},"storage_ip":{"address":"10.117.80.157"},"version":"12.75.0.5931100"},' +
                                  '"id":1,"name":"NHCITJJ1525","uuid":"e6c62f86-3bb4-5b9d-822f-ca60a4b64d3d"}]');
   EXIT;
   {$ELSE}
@@ -1180,6 +1268,7 @@ end;
 
 procedure TfmMain.AddAvailableDrives(ADriveInfoList: TDriveInfoList);
 begin
+  //No longer supported?
   if 0 = ADriveInfoList.Count then
     EXIT;
 
@@ -1233,6 +1322,7 @@ end;
 
 procedure TfmMain.DeleteDrive(ADriveUUID: String);
 begin
+  //Not supported?
   var LResponse: String;
   var LResponseCode: Integer;
   var LResponseText: String;
@@ -1631,6 +1721,146 @@ begin
   end;
 end;
 
+procedure TfmMain.LoadClusterAndNodes;
+begin
+  try
+    var LInfo := GetClusterInfo;
+    try
+      DisplayClusterInfo(LInfo);
+    finally
+      LInfo.Free;
+    end;
+  except on E:Exception do
+    LogError('Exception Loading Cluster: %s', [E.Message]);
+  end;
+
+  try
+    var LNodeList := GetNodes;
+    if nil = LNodeList then
+    begin
+      ClearNodeGrid;
+    end else
+    begin
+      try
+        LoadNodeGrid(LNodeList.AsJSONArray);
+      finally
+        LNodeList.Free;
+      end;
+    end;
+  except on E:Exception do
+    LogError('Exception Loading Nodes: %s', [E.Message]);
+  end;
+
+  try
+    var LNodeList := GetPendingNodes;
+    if nil = LNodeList then
+    begin
+      ClearPendingNodeGrid;
+    end else
+    begin
+      try
+        LoadPendingNodeGrid(LNodeList.AsJSONArray);
+      finally
+        LNodeList.Free;
+      end;
+    end;
+  except on E:Exception do
+    LogError('Exception Loading Pending Nodes: %s', [E.Message]);
+  end;
+end;
+
+procedure TfmMain.LoadDrives;
+begin
+  try
+    var LDriveList := GetDrives;
+    try
+      LoadDrivesGrid(LDriveList.AsJSONArray);
+    finally
+      LDriveList.Free;
+    end;
+  except on E:Exception do
+    LogError('Exception Loading Drives: %s', [E.Message]);
+  end;
+
+  try
+    var LDriveList := GetDrives(TRUE);
+    try
+      LoadUnassignedDrivesGrid(LDriveList.AsJSONArray);
+    finally
+      LDriveList.Free;
+    end;
+  except on E:Exception do
+    LogError('Exception Loading Unassigned Drives: %s', [E.Message]);
+  end;
+end;
+
+procedure TfmMain.LoadJobs;
+begin
+  try
+    var LJobList := GetJobs;
+    try
+      LoadJobsGrid(LJobList.AsJSONArray);
+    finally
+      LJobList.Free;
+    end;
+  except on E:Exception do
+    LogError('Exception Loading Jobs: %s', [E.Message]);
+  end;
+end;
+
+procedure TfmMain.LoadQosPolicies;
+begin
+  try
+    var LQosPolicyList := GetQosPolicies;
+    try
+      LoadQosPoliciesGrid(LQosPolicyList.AsJSONArray);
+    finally
+      LQosPolicyList.Free;
+    end;
+  except on E:Exception do
+    LogError('Exception Loading Qos Policies: %s', [E.Message]);
+  end;
+end;
+
+procedure TfmMain.StartRefreshThread;
+begin
+  StopRefreshThread;
+  FRefreshThread := TDataRefreshThread.Create(TRUE, 5, Self.Handle);
+  FRefreshThread.Resume;
+end;
+
+procedure TfmMain.StopRefreshThread;
+begin
+  if nil <> FRefreshThread then
+  begin
+    try
+      try
+        FRefreshThread.Terminate;
+        FRefreshThread.Free;
+      except on E:Exception do
+        LogWarn('Exception Terminating Refresh Thread: %s', [E.Message]);
+      end;
+    finally
+      FRefreshThread := nil;
+    end;
+  end;
+end;
+
+procedure TfmMain.OnRefreshRequest(var Msg: TMessage);
+begin
+  Screen.Cursor := crHourglass;
+  try
+    case pcCluster.ActivePageIndex of
+    0:LoadClusterAndNodes;
+    1:LoadDrives;
+    2:LoadJobs;
+    3:LoadQosPolicies;
+    end;
+  finally
+    Screen.Cursor := crDefault;
+  end;
+end;
+
 procedure TfmMain.SetBaseURL(AAddress: String; APort: WORD);
 begin
   FHostAddress := AAddress;
@@ -1654,57 +1884,24 @@ end;
 
 procedure TfmMain.btnClusterInfoClick(Sender: TObject);
 begin
-  var LInfo := GetClusterInfo;
+  Screen.Cursor := crHourglass;
   try
-    DisplayClusterInfo(LInfo);
+    LoadClusterAndNodes;
+    pcCluster.ActivePageIndex := 0;
   finally
-    LInfo.Free;
+    Screen.Cursor := crDefault;
   end;
-
-  var LNodeList := GetNodes;
-  if nil = LNodeList then
-  begin
-    ClearNodeGrid;
-  end else
-  begin
-    try
-      LoadNodeGrid(LNodeList.AsJSONArray);
-    finally
-      LNodeList.Free;
-    end;
-  end;
-
-  LNodeList := GetPendingNodes;
-  if nil = LNodeList then
-  begin
-    ClearNodeGrid;
-  end else
-  begin
-    try
-      LoadPendingNodeGrid(LNodeList.AsJSONArray);
-    finally
-      LNodeList.Free;
-    end;
-  end;
-  pcCluster.ActivePageIndex := 0;
 end;
 
 procedure TfmMain.btnDrivesClick(Sender: TObject);
 begin
-  var LDriveList := GetDrives;
+  Screen.Cursor := crHourglass;
   try
-    LoadDrivesGrid(LDriveList.AsJSONArray);
+    LoadDrives;
+    pcCluster.ActivePageIndex := 1;
   finally
-    LDriveList.Free;
+    Screen.Cursor := crDefault;
   end;
-
-  LDriveList := GetDrives(TRUE);
-  try
-    LoadUnassignedDrivesGrid(LDriveList.AsJSONArray);
-  finally
-    LDriveList.Free;
-  end;
-  pcCluster.ActivePageIndex := 1;
 end;
 
 procedure TfmMain.ppmiDeleteNodeClick(Sender: TObject);
@@ -1759,24 +1956,25 @@ end;
 
 procedure TfmMain.btnJobsClick(Sender: TObject);
 begin
-  var LJobList := GetJobs;
+  Screen.Cursor := crHourglass;
   try
-    LoadJobsGrid(LJobList.AsJSONArray);
+    LoadJobs;
+    pcCluster.ActivePageIndex := 2;
   finally
-    LJobList.Free;
+    Screen.Cursor := crDefault;
   end;
-  pcCluster.ActivePageIndex := 2;
 end;
 
 procedure TfmMain.btnQosPoliciesClick(Sender: TObject);
 begin
-  var LQosPolicyList := GetQosPolicies;
+  Screen.Cursor := crHourglass;
   try
-    LoadQosPoliciesGrid(LQosPolicyList.AsJSONArray);
+    LoadQosPolicies;
+    pcCluster.ActivePageIndex := 3;
   finally
-    LQosPolicyList.Free;
+    Screen.Cursor := crDefault;
   end;
-  pcCluster.ActivePageIndex := 3;
+
 end;
 
 procedure TfmMain.ppmiAddSelectedDrivesClick(Sender: TObject);
@@ -1835,6 +2033,20 @@ begin
   var LRecordIndex := AFocusedRecord.RecordIndex;
   var LQosPolicy := TQosPolicyListDataSource(tvQosPolicies.DataController.CustomDataSource).QosPolicies[LRecordIndex];
   DisplayCosts(LQosPolicy.Curve.Costs);
+end;
+
+procedure TfmMain.btnRefreshClick(Sender: TObject);
+begin
+  if not btnRefresh.Down then
+  begin
+    StopRefreshThread;
+    btnRefresh.Caption := 'Auto Refresh Disabled';
+  end
+  else
+  begin
+    StartRefreshThread;
+    btnRefresh.Caption := 'Auto Refresh Enabled';
+  end;
 end;
 
 end.

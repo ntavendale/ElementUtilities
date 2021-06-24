@@ -1,6 +1,6 @@
 1 VERSIONINFO
-FILEVERSION 1,0,0,47
-PRODUCTVERSION 1,0,0,47
+FILEVERSION 1,0,0,53
+PRODUCTVERSION 1,0,0,53
 FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
   FILEFLAGS 0x1L
@@ -16,8 +16,8 @@ BEGIN
       BLOCK "080904e4"
       BEGIN
          VALUE "CompanyName", "Oamaru Group Inc\0"
-         VALUE "ProductVersion", "1,0,0,47\0"
-         VALUE "FileVersion", "1,0,0,47\0"
+         VALUE "ProductVersion", "1,0,0,53\0"
+         VALUE "FileVersion", "1,0,0,53\0"
          VALUE "InternalName", "Element UI Client (x64)\0"
          VALUE "OriginalFilename", "ElementUI.exe\0"
          VALUE "ProductName", "Element UI Client\0"

@@ -3,7 +3,7 @@ object fmMain: TfmMain
   Top = 0
   Caption = 'fmMain'
   ClientHeight = 807
-  ClientWidth = 1155
+  ClientWidth = 1211
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -19,13 +19,14 @@ object fmMain: TfmMain
   object RibbonMain: TdxRibbon
     Left = 0
     Top = 0
-    Width = 1155
+    Width = 1211
     Height = 126
     BarManager = BarManagerMain
     ColorSchemeName = 'Blue'
     Contexts = <>
     TabOrder = 0
     TabStop = False
+    ExplicitWidth = 1155
     object RibbonTabCluster: TdxRibbonTab
       Active = True
       Caption = 'Cluster'
@@ -45,7 +46,7 @@ object fmMain: TfmMain
   object splMain: TRzSplitter
     Left = 0
     Top = 126
-    Width = 1155
+    Width = 1211
     Height = 681
     FixedPane = fpLowerRight
     Orientation = orVertical
@@ -55,10 +56,11 @@ object fmMain: TfmMain
     SplitterWidth = 6
     Align = alClient
     TabOrder = 1
+    ExplicitWidth = 1155
     BarSize = (
       0
       491
-      1155
+      1211
       497)
     UpperLeftControls = (
       pcCluster)
@@ -67,16 +69,18 @@ object fmMain: TfmMain
     object pcCluster: TRzPageControl
       Left = 0
       Top = 0
-      Width = 1155
+      Width = 1211
       Height = 491
       Hint = ''
-      ActivePage = tsQosPolicy
+      ActivePage = tsClusterInfo
       Align = alClient
-      TabIndex = 3
+      TabIndex = 0
       TabOrder = 0
+      ExplicitWidth = 1155
       FixedDimension = 19
       object tsClusterInfo: TRzTabSheet
         Caption = 'tsClusterInfo'
+        ExplicitWidth = 1151
         object RzGroupBox2: TRzGroupBox
           Left = 0
           Top = 0
@@ -100,7 +104,7 @@ object fmMain: TfmMain
         object splNodes: TRzSplitter
           Left = 305
           Top = 0
-          Width = 846
+          Width = 902
           Height = 468
           FixedPane = fpLowerRight
           Orientation = orVertical
@@ -110,10 +114,11 @@ object fmMain: TfmMain
           SplitterWidth = 6
           Align = alClient
           TabOrder = 1
+          ExplicitWidth = 846
           BarSize = (
             0
             292
-            846
+            902
             298)
           UpperLeftControls = (
             gbNodes)
@@ -122,20 +127,22 @@ object fmMain: TfmMain
           object gbNodes: TRzGroupBox
             Left = 0
             Top = 0
-            Width = 846
+            Width = 902
             Height = 292
             Align = alClient
             Caption = 'Nodes'
             GroupStyle = gsBanner
             TabOrder = 0
+            ExplicitWidth = 846
             object gNodes: TcxGrid
               Left = 0
               Top = 21
-              Width = 846
+              Width = 902
               Height = 271
               Align = alClient
               PopupMenu = ppmNodes
               TabOrder = 0
+              ExplicitWidth = 846
               object tvNodes: TcxGridTableView
                 Navigator.Buttons.CustomButtons = <>
                 ScrollbarAnnotations.CustomAnnotations = <>
@@ -153,11 +160,11 @@ object fmMain: TfmMain
                 OptionsView.GroupByBox = False
                 object colNodeID: TcxGridColumn
                   Caption = 'Node ID'
-                  Width = 47
+                  Width = 42
                 end
                 object colNodesName: TcxGridColumn
                   Caption = 'Name'
-                  Width = 140
+                  Width = 108
                 end
                 object coNodeClusterlP: TcxGridColumn
                   Caption = 'Cluster IP'
@@ -177,11 +184,18 @@ object fmMain: TfmMain
                 end
                 object colNodeRole: TcxGridColumn
                   Caption = 'Role'
-                  Width = 96
+                  Width = 76
                 end
                 object colNodeVersion: TcxGridColumn
                   Caption = 'Version'
-                  Width = 113
+                  Width = 89
+                end
+                object colReachable: TcxGridColumn
+                  Caption = 'Reachable'
+                  PropertiesClassName = 'TcxCheckBoxProperties'
+                end
+                object colState: TcxGridColumn
+                  Caption = 'State'
                 end
               end
               object tvNodeDrives: TcxGridTableView
@@ -220,20 +234,22 @@ object fmMain: TfmMain
           object gbPendingNodes: TRzGroupBox
             Left = 0
             Top = 0
-            Width = 846
+            Width = 902
             Height = 170
             Align = alClient
             Caption = 'PendingNodes'
             GroupStyle = gsBanner
             TabOrder = 0
+            ExplicitWidth = 846
             object gPendingNodes: TcxGrid
               Left = 0
               Top = 21
-              Width = 846
+              Width = 902
               Height = 149
               Align = alClient
               PopupMenu = ppmPendingNodes
               TabOrder = 0
+              ExplicitWidth = 846
               object tvPendingNodes: TcxGridTableView
                 Navigator.Buttons.CustomButtons = <>
                 ScrollbarAnnotations.CustomAnnotations = <>
@@ -255,7 +271,7 @@ object fmMain: TfmMain
                 end
                 object volPendingNodeName: TcxGridColumn
                   Caption = 'Name'
-                  Width = 132
+                  Width = 114
                 end
                 object colPendingNodeClusterIP: TcxGridColumn
                   Caption = 'Cluster IP'
@@ -275,11 +291,19 @@ object fmMain: TfmMain
                 end
                 object colPendingNodeRole: TcxGridColumn
                   Caption = 'Role'
-                  Width = 96
+                  Width = 86
                 end
                 object colPendingNodeVersion: TcxGridColumn
                   Caption = 'Version'
                   Width = 113
+                end
+                object colPendingNodeReachable: TcxGridColumn
+                  Caption = 'Reachable'
+                  PropertiesClassName = 'TcxCheckBoxProperties'
+                  Visible = False
+                end
+                object colPendingNodeState: TcxGridColumn
+                  Caption = 'State'
                 end
               end
               object lvPendingNodes: TcxGridLevel
@@ -292,10 +316,11 @@ object fmMain: TfmMain
       end
       object tsDrives: TRzTabSheet
         Caption = 'tsDrives'
+        ExplicitWidth = 1151
         object splDrives: TRzSplitter
           Left = 0
           Top = 0
-          Width = 1151
+          Width = 1207
           Height = 468
           FixedPane = fpLowerRight
           Orientation = orVertical
@@ -305,10 +330,11 @@ object fmMain: TfmMain
           SplitterWidth = 6
           Align = alClient
           TabOrder = 0
+          ExplicitWidth = 1151
           BarSize = (
             0
             253
-            1151
+            1207
             259)
           UpperLeftControls = (
             gbDrives)
@@ -317,20 +343,22 @@ object fmMain: TfmMain
           object gbDrives: TRzGroupBox
             Left = 0
             Top = 0
-            Width = 1151
+            Width = 1207
             Height = 253
             Align = alClient
             Caption = 'Drives'
             GroupStyle = gsBanner
             TabOrder = 0
+            ExplicitWidth = 1151
             object gDrives: TcxGrid
               Left = 0
               Top = 21
-              Width = 1151
+              Width = 1207
               Height = 232
               Align = alClient
               PopupMenu = ppmDrives
               TabOrder = 0
+              ExplicitWidth = 1151
               object tvDrives: TcxGridTableView
                 Navigator.Buttons.CustomButtons = <>
                 ScrollbarAnnotations.CustomAnnotations = <>
@@ -390,20 +418,22 @@ object fmMain: TfmMain
           object gbAvailableDrives: TRzGroupBox
             Left = 0
             Top = 0
-            Width = 1151
+            Width = 1207
             Height = 209
             Align = alClient
             Caption = 'Unassigned Drives'
             GroupStyle = gsBanner
             TabOrder = 0
+            ExplicitWidth = 1151
             object gUnassignedDrives: TcxGrid
               Left = 0
               Top = 21
-              Width = 1151
+              Width = 1207
               Height = 188
               Align = alClient
               PopupMenu = ppmUnassingedDrives
               TabOrder = 0
+              ExplicitWidth = 1151
               object tvUnassignedDrives: TcxGridTableView
                 Navigator.Buttons.CustomButtons = <>
                 ScrollbarAnnotations.CustomAnnotations = <>
@@ -462,26 +492,25 @@ object fmMain: TfmMain
       end
       object tsJobs: TRzTabSheet
         Caption = 'tsJobs'
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
+        ExplicitWidth = 1151
         object gbJobs: TRzGroupBox
           Left = 0
           Top = 0
-          Width = 1151
+          Width = 1207
           Height = 368
           Align = alClient
           Caption = 'Jobs'
           GroupStyle = gsBanner
           TabOrder = 0
+          ExplicitWidth = 1151
           object gJobs: TcxGrid
             Left = 0
             Top = 21
-            Width = 1151
+            Width = 1207
             Height = 347
             Align = alClient
             TabOrder = 0
+            ExplicitWidth = 1151
             object tvJobs: TcxGridTableView
               Navigator.Buttons.CustomButtons = <>
               ScrollbarAnnotations.CustomAnnotations = <>
@@ -531,50 +560,48 @@ object fmMain: TfmMain
         object gbJobError: TRzGroupBox
           Left = 0
           Top = 368
-          Width = 1151
+          Width = 1207
           Height = 100
           Align = alBottom
           Caption = 'Error Information'
           GroupStyle = gsBanner
           TabOrder = 1
+          ExplicitWidth = 1151
           object vgJobError: TcxVerticalGrid
             Left = 0
             Top = 21
-            Width = 1151
+            Width = 1207
             Height = 79
             Align = alClient
             OptionsView.RowHeaderWidth = 110
             TabOrder = 0
+            ExplicitWidth = 1151
             Version = 1
           end
         end
       end
       object tsQosPolicy: TRzTabSheet
         Caption = 'tsQosPolicy'
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
+        ExplicitWidth = 1151
         object gbQosPOlicies: TRzGroupBox
           Left = 0
           Top = 0
-          Width = 1151
+          Width = 1207
           Height = 468
           Align = alClient
           Caption = 'Qos Policies'
           GroupStyle = gsBanner
           TabOrder = 0
+          ExplicitWidth = 1151
           object pnCosts: TPanel
-            Left = 902
+            Left = 958
             Top = 21
             Width = 249
             Height = 447
             Align = alRight
             BevelOuter = bvNone
             TabOrder = 0
-            ExplicitLeft = 864
-            ExplicitTop = 45
-            ExplicitHeight = 377
+            ExplicitLeft = 902
             object vgCurve: TcxVerticalGrid
               Left = 0
               Top = 0
@@ -582,10 +609,6 @@ object fmMain: TfmMain
               Height = 447
               Align = alClient
               TabOrder = 0
-              ExplicitLeft = -14
-              ExplicitTop = 18
-              ExplicitWidth = 263
-              ExplicitHeight = 359
               Version = 1
               object crCosts: TcxCategoryRow
                 Properties.Caption = 'Costs'
@@ -599,26 +622,20 @@ object fmMain: TfmMain
           object pnQosGrid: TPanel
             Left = 0
             Top = 21
-            Width = 902
+            Width = 958
             Height = 447
             Align = alClient
             BevelOuter = bvNone
             TabOrder = 1
-            ExplicitLeft = 16
-            ExplicitTop = 40
-            ExplicitWidth = 594
-            ExplicitHeight = 329
+            ExplicitWidth = 902
             object gQosPolicies: TcxGrid
               Left = 0
               Top = 0
-              Width = 902
+              Width = 958
               Height = 447
               Align = alClient
               TabOrder = 0
-              ExplicitLeft = 33
-              ExplicitTop = 10
-              ExplicitWidth = 505
-              ExplicitHeight = 295
+              ExplicitWidth = 902
               object tvQosPolicies: TcxGridTableView
                 Navigator.Buttons.CustomButtons = <>
                 ScrollbarAnnotations.CustomAnnotations = <>
@@ -669,24 +686,22 @@ object fmMain: TfmMain
     object pcBottom: TRzPageControl
       Left = 0
       Top = 0
-      Width = 1155
+      Width = 1211
       Height = 184
       Hint = ''
       ActivePage = tsLog
       Align = alClient
       TabIndex = 0
       TabOrder = 0
+      ExplicitWidth = 1155
       FixedDimension = 19
       object tsLog: TRzTabSheet
         Caption = 'Log'
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
+        ExplicitWidth = 1151
         object memLog: TRzMemo
           Left = 0
           Top = 0
-          Width = 1151
+          Width = 1207
           Height = 161
           Align = alClient
           Font.Charset = DEFAULT_CHARSET
@@ -700,6 +715,7 @@ object fmMain: TfmMain
           WordWrap = False
           FrameStyle = fsBump
           FrameVisible = True
+          ExplicitWidth = 1151
         end
       end
     end
@@ -15856,7 +15872,7 @@ object fmMain: TfmMain
       WholeRow = False
     end
     object barHelp: TdxBar
-      Caption = 'Help'
+      Caption = 'Refresh'
       CaptionButtons = <>
       DockedLeft = 259
       DockedTop = 0
@@ -15873,7 +15889,7 @@ object fmMain: TfmMain
       ItemLinks = <
         item
           Visible = True
-          ItemName = 'btnHelpGuide'
+          ItemName = 'btnRefresh'
         end>
       OneOnRow = False
       Row = 0
@@ -15922,12 +15938,16 @@ object fmMain: TfmMain
       Hint = 'New Button'
       Visible = ivAlways
     end
-    object btnHelpGuide: TdxBarLargeButton
-      Caption = 'Getting Started Guide'
+    object btnRefresh: TdxBarLargeButton
+      Caption = 'Auto Refresh Disabled'
       Category = 0
-      Hint = 'Getting Started Guide'
+      Hint = 'Auto Refresh Disabled'
       Visible = ivAlways
-      LargeImageIndex = 10
+      AllowAllUp = True
+      ButtonStyle = bsChecked
+      GroupIndex = 2
+      OnClick = btnRefreshClick
+      LargeImageIndex = 64
     end
     object btnSetEnglish: TdxBarLargeButton
       Tag = 1
@@ -16026,6 +16046,7 @@ object fmMain: TfmMain
     object ppmiDeleteNodeDrives: TMenuItem
       Caption = 'Delete Node Drives'
       ImageIndex = 2
+      Visible = False
       OnClick = ppmiDeleteNodeDrivesClick
     end
   end
@@ -16196,6 +16217,7 @@ object fmMain: TfmMain
     object ppmiDeleteDrives: TMenuItem
       Caption = 'Delete Selected Drives'
       ImageIndex = 2
+      Visible = False
       OnClick = ppmiDeleteDrivesClick
     end
   end
@@ -16206,6 +16228,7 @@ object fmMain: TfmMain
     object ppmiAddSelectedDrives: TMenuItem
       Caption = 'Add Selected Drives'
       ImageIndex = 0
+      Visible = False
       OnClick = ppmiAddSelectedDrivesClick
     end
   end
