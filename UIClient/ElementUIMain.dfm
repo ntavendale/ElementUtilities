@@ -26,7 +26,6 @@ object fmMain: TfmMain
     Contexts = <>
     TabOrder = 0
     TabStop = False
-    ExplicitWidth = 1155
     object RibbonTabCluster: TdxRibbonTab
       Active = True
       Caption = 'Cluster'
@@ -80,7 +79,6 @@ object fmMain: TfmMain
       FixedDimension = 19
       object tsClusterInfo: TRzTabSheet
         Caption = 'tsClusterInfo'
-        ExplicitWidth = 1151
         object RzGroupBox2: TRzGroupBox
           Left = 0
           Top = 0
@@ -114,7 +112,6 @@ object fmMain: TfmMain
           SplitterWidth = 6
           Align = alClient
           TabOrder = 1
-          ExplicitWidth = 846
           BarSize = (
             0
             292
@@ -316,7 +313,6 @@ object fmMain: TfmMain
       end
       object tsDrives: TRzTabSheet
         Caption = 'tsDrives'
-        ExplicitWidth = 1151
         object splDrives: TRzSplitter
           Left = 0
           Top = 0
@@ -330,7 +326,6 @@ object fmMain: TfmMain
           SplitterWidth = 6
           Align = alClient
           TabOrder = 0
-          ExplicitWidth = 1151
           BarSize = (
             0
             253
@@ -492,7 +487,10 @@ object fmMain: TfmMain
       end
       object tsJobs: TRzTabSheet
         Caption = 'tsJobs'
+        ExplicitLeft = 0
+        ExplicitTop = 0
         ExplicitWidth = 1151
+        ExplicitHeight = 0
         object gbJobs: TRzGroupBox
           Left = 0
           Top = 0
@@ -582,7 +580,10 @@ object fmMain: TfmMain
       end
       object tsQosPolicy: TRzTabSheet
         Caption = 'tsQosPolicy'
+        ExplicitLeft = 0
+        ExplicitTop = 0
         ExplicitWidth = 1151
+        ExplicitHeight = 0
         object gbQosPOlicies: TRzGroupBox
           Left = 0
           Top = 0
@@ -697,7 +698,10 @@ object fmMain: TfmMain
       FixedDimension = 19
       object tsLog: TRzTabSheet
         Caption = 'Log'
+        ExplicitLeft = 0
+        ExplicitTop = 0
         ExplicitWidth = 1151
+        ExplicitHeight = 0
         object memLog: TRzMemo
           Left = 0
           Top = 0
@@ -715,7 +719,6 @@ object fmMain: TfmMain
           WordWrap = False
           FrameStyle = fsBump
           FrameVisible = True
-          ExplicitWidth = 1151
         end
       end
     end

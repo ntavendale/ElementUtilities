@@ -810,14 +810,14 @@ end;
 function TfmMain.GetNodes: TNodeInfoList;
 begin
   {$IFDEF DEBUG}
-  Result := TNodeInfoList.Create('[{"_links":{"self":{"href":"/api/cluster/nodes/e6c62f86-3bb4-5b9d-822f-ca60a4b64d3d"}},"detail":{"cluster_ip":{"address":"10.117.80.157"},' +
+  Result := TNodeInfoList.Create('[{"_links":{"self":{"href":"/api/cluster/nodes/e6c62f86-3bb4-5b9d-822f-ca60a4b64d3d"}},"detail":{"clusterIPInterface":{"address":"10.117.80.157"},' +
                                  '"drives":[{"_links":{"self":{"href":"/api/cluster/drives/5aa562ba-7257-5757-a6d3-24f7971c643f"}},"state":"Active","uuid":"5aa562ba-7257-5757-a6d3-24f7971c643f"},' +
                                  '{"_links":{"self":{"href":"/api/cluster/drives/7116ca99-c93d-5551-885c-8625785f9c67"}},"state":"Active","uuid":"7116ca99-c93d-5551-885c-8625785f9c67"},' +
                                  '{"_links":{"self":{"href":"/api/cluster/drives/3a1e3680-0c8b-5e23-8c2e-2d42acf96ea4"}},"state":"Active","uuid":"3a1e3680-0c8b-5e23-8c2e-2d42acf96ea4"},' +
                                  '{"_links":{"self":{"href":"/api/cluster/drives/a6eec0e6-6e43-578c-aaec-e404a6a62f0d"}},"state":"Active","uuid":"a6eec0e6-6e43-578c-aaec-e404a6a62f0d"},' +
                                  '{"_links":{"self":{"href":"/api/cluster/drives/895c2810-4ed6-5906-8ecd-d9a8f2cb560a"}},"state":"Active","uuid":"895c2810-4ed6-5906-8ecd-d9a8f2cb560a"},' +
                                  '{"_links":{"self":{"href":"/api/cluster/drives/b9bf9d47-8a39-5491-8afc-83385c5a9761"}},"state":"Active","uuid":"b9bf9d47-8a39-5491-8afc-83385c5a9761"}],' +
-                                 '"maintenance_mode":{"state":"Disabled","variant":"None"},"management_ip":{"address":"10.117.64.253"},"role":"Storage","status":{"reachable":true,"state":"Added"},"storage_ip":{"address":"10.117.80.157"},"version":"12.75.0.5931100"},' +
+                                 '"maintenance_mode":{"state":"Disabled","variant":"None"},"managementIPInterface":{"address":"10.117.64.253"},"role":"Storage","status":{"reachable":true,"state":"Added"},"storageIPInterface":{"address":"10.117.80.157"},"version":"12.75.0.5931100"},' +
                                  '"id":1,"name":"NHCITJJ1525","uuid":"e6c62f86-3bb4-5b9d-822f-ca60a4b64d3d"}]');
   EXIT;
   {$ELSE}
@@ -877,14 +877,14 @@ end;
 function TfmMain.GetPendingNodes: TNodeInfoList;
 begin
   {$IFDEF DEBUG}
-  Result := TNodeInfoList.Create('[{"_links":{"self":{"href":"/api/cluster/nodes/e6c62f86-3bb4-5b9d-822f-ca60a4b64d3d"}},"detail":{"cluster_ip":{"address":"10.117.80.157"},' +
+  Result := TNodeInfoList.Create('[{"_links":{"self":{"href":"/api/cluster/nodes/e6c62f86-3bb4-5b9d-822f-ca60a4b64d3d"}},"detail":{"clusterIPInterface":{"address":"10.117.80.157"},' +
                                  '"drives":[{"_links":{"self":{"href":"/api/cluster/drives/5aa562ba-7257-5757-a6d3-24f7971c643f"}},"state":"Active","uuid":"5aa562ba-7257-5757-a6d3-24f7971c643f"},' +
                                  '{"_links":{"self":{"href":"/api/cluster/drives/7116ca99-c93d-5551-885c-8625785f9c67"}},"state":"Active","uuid":"7116ca99-c93d-5551-885c-8625785f9c67"},' +
                                  '{"_links":{"self":{"href":"/api/cluster/drives/3a1e3680-0c8b-5e23-8c2e-2d42acf96ea4"}},"state":"Active","uuid":"3a1e3680-0c8b-5e23-8c2e-2d42acf96ea4"},' +
                                  '{"_links":{"self":{"href":"/api/cluster/drives/a6eec0e6-6e43-578c-aaec-e404a6a62f0d"}},"state":"Active","uuid":"a6eec0e6-6e43-578c-aaec-e404a6a62f0d"},' +
                                  '{"_links":{"self":{"href":"/api/cluster/drives/895c2810-4ed6-5906-8ecd-d9a8f2cb560a"}},"state":"Active","uuid":"895c2810-4ed6-5906-8ecd-d9a8f2cb560a"},' +
                                  '{"_links":{"self":{"href":"/api/cluster/drives/b9bf9d47-8a39-5491-8afc-83385c5a9761"}},"state":"Active","uuid":"b9bf9d47-8a39-5491-8afc-83385c5a9761"}],' +
-                                 '"maintenance_mode":{"state":"Disabled","variant":"None"},"management_ip":{"address":"10.117.64.253"},"role":"Storage","status":{"reachable":true,"state":"Pending"},"storage_ip":{"address":"10.117.80.157"},"version":"12.75.0.5931100"},' +
+                                 '"maintenance_mode":{"state":"Disabled","variant":"None"},"managementIPInterface":{"address":"10.117.64.253"},"role":"Storage","status":{"reachable":true,"state":"Pending"},"storageIPInterface":{"address":"10.117.80.157"},"version":"12.75.0.5931100"},' +
                                  '"id":1,"name":"NHCITJJ1525","uuid":"e6c62f86-3bb4-5b9d-822f-ca60a4b64d3d"}]');
   EXIT;
   {$ELSE}
@@ -1826,7 +1826,7 @@ procedure TfmMain.StartRefreshThread;
 begin
   StopRefreshThread;
   FRefreshThread := TDataRefreshThread.Create(TRUE, 5, Self.Handle);
-  FRefreshThread.Resume;
+  FRefreshThread.Start;
 end;
 
 procedure TfmMain.StopRefreshThread;

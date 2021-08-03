@@ -173,7 +173,7 @@ const
   TEST_NODE_DRIVE_JSON_01 = '{"_links":{"self":{"href":"\/api\/cluster\/drives\/5aa562ba-7257-5757-a6d3-24f7971c643f"}},"state":"Active","uuid":"5aa562ba-7257-5757-a6d3-24f7971c643f"}';
   TEST_NODE_DRIVE_JSON_02 = '{"_links":{"self":{"href":"\/api\/cluster\/drives\/7116ca99-c93d-5551-885c-8625785f9c67"}},"state":"Active","uuid":"7116ca99-c93d-5551-885c-8625785f9c67"}';
   TEST_NODE_DRIVE_JSON_03 = '{"_links":{"self":{"href":"\/api\/cluster\/drives\/3a1e3680-0c8b-5e23-8c2e-2d42acf96ea4"}},"state":"Active","uuid":"3a1e3680-0c8b-5e23-8c2e-2d42acf96ea4"}';
-  TEST_JSON = '{"cluster_ip":{"address":"10.117.80.157"},"drives":[' + TEST_NODE_DRIVE_JSON_01 + ',' + TEST_NODE_DRIVE_JSON_02 + ',' + TEST_NODE_DRIVE_JSON_03 + '],"maintenance_mode":{"state":"Disabled","variant":"None"},' + '"management_ip":{"address":"10.117.64.253"},"role":"Storage","status":{"reachable":true,"state":"Added"},"storage_ip":{"address":"10.117.80.157"},"version":"12.75.0.5931100"}';
+  TEST_JSON = '{"clusterIPInterface":{"address":"10.117.80.157"},"drives":[' + TEST_NODE_DRIVE_JSON_01 + ',' + TEST_NODE_DRIVE_JSON_02 + ',' + TEST_NODE_DRIVE_JSON_03 + '],"maintenance_mode":{"state":"Disabled","variant":"None"},' + '"managementIPInterface":{"address":"10.117.64.253"},"role":"Storage","status":{"reachable":true,"state":"Added"},"storageIPInterface":{"address":"10.117.80.157"},"version":"12.75.0.5931100"}';
 begin
   var LObj := TNodeInfoDetail.Create;
   try
@@ -204,7 +204,7 @@ const
   TEST_NODE_DRIVE_JSON_01 = '{"_links":{"self":{"href":"\/api\/cluster\/drives\/5aa562ba-7257-5757-a6d3-24f7971c643f"}},"state":"Active","uuid":"5aa562ba-7257-5757-a6d3-24f7971c643f"}';
   TEST_NODE_DRIVE_JSON_02 = '{"_links":{"self":{"href":"\/api\/cluster\/drives\/7116ca99-c93d-5551-885c-8625785f9c67"}},"state":"Active","uuid":"7116ca99-c93d-5551-885c-8625785f9c67"}';
   TEST_NODE_DRIVE_JSON_03 = '{"_links":{"self":{"href":"\/api\/cluster\/drives\/3a1e3680-0c8b-5e23-8c2e-2d42acf96ea4"}},"state":"Active","uuid":"3a1e3680-0c8b-5e23-8c2e-2d42acf96ea4"}';
-  TEST_JSON = '{"cluster_ip":{"address":"10.117.80.157"},"drives":[' + TEST_NODE_DRIVE_JSON_01 + ',' + TEST_NODE_DRIVE_JSON_02 + ',' + TEST_NODE_DRIVE_JSON_03 + '],"maintenance_mode":{"state":"Disabled","variant":"None"},' + '"management_ip":{"address":"10.117.64.253"},"role":"Storage","status":{"reachable":true,"state":"Added"},"storage_ip":{"address":"10.117.80.157"},"version":"12.75.0.5931100"}';
+  TEST_JSON = '{"clusterIPInterface":{"address":"10.117.80.157"},"drives":[' + TEST_NODE_DRIVE_JSON_01 + ',' + TEST_NODE_DRIVE_JSON_02 + ',' + TEST_NODE_DRIVE_JSON_03 + '],"maintenance_mode":{"state":"Disabled","variant":"None"},' + '"managementIPInterface":{"address":"10.117.64.253"},"role":"Storage","status":{"reachable":true,"state":"Added"},"storageIPInterface":{"address":"10.117.80.157"},"version":"12.75.0.5931100"}';
 begin
   var LObj := TNodeInfoDetail.Create;
   try
@@ -248,7 +248,7 @@ const
   TEST_NODE_DRIVE_JSON_01 = '{"_links":{"self":{"href":"\/api\/cluster\/drives\/5aa562ba-7257-5757-a6d3-24f7971c643f"}},"state":"Active","uuid":"5aa562ba-7257-5757-a6d3-24f7971c643f"}';
   TEST_NODE_DRIVE_JSON_02 = '{"_links":{"self":{"href":"\/api\/cluster\/drives\/7116ca99-c93d-5551-885c-8625785f9c67"}},"state":"Active","uuid":"7116ca99-c93d-5551-885c-8625785f9c67"}';
   TEST_NODE_DRIVE_JSON_03 = '{"_links":{"self":{"href":"\/api\/cluster\/drives\/3a1e3680-0c8b-5e23-8c2e-2d42acf96ea4"}},"state":"Active","uuid":"3a1e3680-0c8b-5e23-8c2e-2d42acf96ea4"}';
-  TEST_JSON = '{"cluster_ip":{"address":"10.117.80.157"},"drives":[' + TEST_NODE_DRIVE_JSON_01 + ',' + TEST_NODE_DRIVE_JSON_02 + ',' + TEST_NODE_DRIVE_JSON_03 + '],"maintenance_mode":{"state":"Disabled","variant":"None"},' + '"management_ip":{"address":"10.117.64.253"},"role":"Storage","status":{"reachable":true,"state":"Added"},"storage_ip":{"address":"10.117.80.157"},"version":"12.75.0.5931100"}';
+  TEST_JSON = '{"clusterIPInterface":{"address":"10.117.80.157"},"drives":[' + TEST_NODE_DRIVE_JSON_01 + ',' + TEST_NODE_DRIVE_JSON_02 + ',' + TEST_NODE_DRIVE_JSON_03 + '],"maintenance_mode":{"state":"Disabled","variant":"None"},' + '"managementIPInterface":{"address":"10.117.64.253"},"role":"Storage","status":{"reachable":true,"state":"Added"},"storageIPInterface":{"address":"10.117.80.157"},"version":"12.75.0.5931100"}';
 begin
   var LObj := TNodeInfoDetail.Create(TEST_JSON);
   try
@@ -291,7 +291,7 @@ const
   TEST_NODE_DRIVE_JSON_01 = '{"_links":{"self":{"href":"\/api\/cluster\/drives\/5aa562ba-7257-5757-a6d3-24f7971c643f"}},"state":"Active","uuid":"5aa562ba-7257-5757-a6d3-24f7971c643f"}';
   TEST_NODE_DRIVE_JSON_02 = '{"_links":{"self":{"href":"\/api\/cluster\/drives\/7116ca99-c93d-5551-885c-8625785f9c67"}},"state":"Active","uuid":"7116ca99-c93d-5551-885c-8625785f9c67"}';
   TEST_NODE_DRIVE_JSON_03 = '{"_links":{"self":{"href":"\/api\/cluster\/drives\/3a1e3680-0c8b-5e23-8c2e-2d42acf96ea4"}},"state":"Active","uuid":"3a1e3680-0c8b-5e23-8c2e-2d42acf96ea4"}';
-  TEST_JSON = '{"_links":{"self":{"href":"\/api\/cluster\/nodes\/e6c62f86-3bb4-5b9d-822f-ca60a4b64d3d"}},"detail":{"cluster_ip":{"address":"10.117.80.157"},"drives":[' + TEST_NODE_DRIVE_JSON_01 + ',' + TEST_NODE_DRIVE_JSON_02 + ',' + TEST_NODE_DRIVE_JSON_03 + '],"maintenance_mode":{"state":"Disabled","variant":"None"},' + '"management_ip":{"address":"10.117.64.253"},"role":"Storage","status":{"reachable":true,"state":"Added"},"storage_ip":{"address":"10.117.80.157"},"version":"12.75.0.5931100"},"id":1,"name":"NHCITJJ1525","uuid":"e6c62f86-3bb4-5b9d-822f-ca60a4b64d3d"}';
+  TEST_JSON = '{"_links":{"self":{"href":"\/api\/cluster\/nodes\/e6c62f86-3bb4-5b9d-822f-ca60a4b64d3d"}},"detail":{"clusterIPInterface":{"address":"10.117.80.157"},"drives":[' + TEST_NODE_DRIVE_JSON_01 + ',' + TEST_NODE_DRIVE_JSON_02 + ',' + TEST_NODE_DRIVE_JSON_03 + '],"maintenance_mode":{"state":"Disabled","variant":"None"},' + '"managementIPInterface":{"address":"10.117.64.253"},"role":"Storage","status":{"reachable":true,"state":"Added"},' + '"storageIPInterface":{"address":"10.117.80.157"},"version":"12.75.0.5931100"},"id":1,"name":"NHCITJJ1525","uuid":"e6c62f86-3bb4-5b9d-822f-ca60a4b64d3d"}';
 begin
   var LObj := TNodeInfo.Create;
   try
@@ -323,7 +323,7 @@ const
   TEST_NODE_DRIVE_JSON_01 = '{"_links":{"self":{"href":"\/api\/cluster\/drives\/5aa562ba-7257-5757-a6d3-24f7971c643f"}},"state":"Active","uuid":"5aa562ba-7257-5757-a6d3-24f7971c643f"}';
   TEST_NODE_DRIVE_JSON_02 = '{"_links":{"self":{"href":"\/api\/cluster\/drives\/7116ca99-c93d-5551-885c-8625785f9c67"}},"state":"Active","uuid":"7116ca99-c93d-5551-885c-8625785f9c67"}';
   TEST_NODE_DRIVE_JSON_03 = '{"_links":{"self":{"href":"\/api\/cluster\/drives\/3a1e3680-0c8b-5e23-8c2e-2d42acf96ea4"}},"state":"Active","uuid":"3a1e3680-0c8b-5e23-8c2e-2d42acf96ea4"}';
-  TEST_JSON = '{"_links":{"self":{"href":"\/api\/cluster\/nodes\/e6c62f86-3bb4-5b9d-822f-ca60a4b64d3d"}},"detail":{"cluster_ip":{"address":"10.117.80.157"},"drives":[' + TEST_NODE_DRIVE_JSON_01 + ',' + TEST_NODE_DRIVE_JSON_02 + ',' + TEST_NODE_DRIVE_JSON_03 + '],"maintenance_mode":{"state":"Disabled","variant":"None"},' + '"management_ip":{"address":"10.117.64.253"},"role":"Storage","status":{"reachable":true,"state":"Added"},"storage_ip":{"address":"10.117.80.157"},"version":"12.75.0.5931100"},"id":1,"name":"NHCITJJ1525","uuid":"e6c62f86-3bb4-5b9d-822f-ca60a4b64d3d"}';
+  TEST_JSON = '{"_links":{"self":{"href":"\/api\/cluster\/nodes\/e6c62f86-3bb4-5b9d-822f-ca60a4b64d3d"}},"detail":{"clusterIPInterface":{"address":"10.117.80.157"},"drives":[' + TEST_NODE_DRIVE_JSON_01 + ',' + TEST_NODE_DRIVE_JSON_02 + ',' + TEST_NODE_DRIVE_JSON_03 + '],"maintenance_mode":{"state":"Disabled","variant":"None"},' + '"managementIPInterface":{"address":"10.117.64.253"},"role":"Storage","status":{"reachable":true,"state":"Added"},' + '"storageIPInterface":{"address":"10.117.80.157"},"version":"12.75.0.5931100"},"id":1,"name":"NHCITJJ1525","uuid":"e6c62f86-3bb4-5b9d-822f-ca60a4b64d3d"}';
 begin
   var LObj := TNodeInfo.Create;
   try
@@ -369,7 +369,7 @@ const
   TEST_NODE_DRIVE_JSON_01 = '{"_links":{"self":{"href":"\/api\/cluster\/drives\/5aa562ba-7257-5757-a6d3-24f7971c643f"}},"state":"Active","uuid":"5aa562ba-7257-5757-a6d3-24f7971c643f"}';
   TEST_NODE_DRIVE_JSON_02 = '{"_links":{"self":{"href":"\/api\/cluster\/drives\/7116ca99-c93d-5551-885c-8625785f9c67"}},"state":"Active","uuid":"7116ca99-c93d-5551-885c-8625785f9c67"}';
   TEST_NODE_DRIVE_JSON_03 = '{"_links":{"self":{"href":"\/api\/cluster\/drives\/3a1e3680-0c8b-5e23-8c2e-2d42acf96ea4"}},"state":"Active","uuid":"3a1e3680-0c8b-5e23-8c2e-2d42acf96ea4"}';
-  TEST_JSON = '{"_links":{"self":{"href":"\/api\/cluster\/nodes\/e6c62f86-3bb4-5b9d-822f-ca60a4b64d3d"}},"detail":{"cluster_ip":{"address":"10.117.80.157"},"drives":[' + TEST_NODE_DRIVE_JSON_01 + ',' + TEST_NODE_DRIVE_JSON_02 + ',' + TEST_NODE_DRIVE_JSON_03 + '],"maintenance_mode":{"state":"Disabled","variant":"None"},' + '"management_ip":{"address":"10.117.64.253"},"role":"Storage","status":{"reachable":true,"state":"Added"},"storage_ip":{"address":"10.117.80.157"},"version":"12.75.0.5931100"},"id":1,"name":"NHCITJJ1525","uuid":"e6c62f86-3bb4-5b9d-822f-ca60a4b64d3d"}';
+  TEST_JSON = '{"_links":{"self":{"href":"\/api\/cluster\/nodes\/e6c62f86-3bb4-5b9d-822f-ca60a4b64d3d"}},"detail":{"clusterIPInterface":{"address":"10.117.80.157"},"drives":[' + TEST_NODE_DRIVE_JSON_01 + ',' + TEST_NODE_DRIVE_JSON_02 + ',' + TEST_NODE_DRIVE_JSON_03 + '],"maintenance_mode":{"state":"Disabled","variant":"None"},' + '"managementIPInterface":{"address":"10.117.64.253"},"role":"Storage","status":{"reachable":true,"state":"Added"},' + '"storageIPInterface":{"address":"10.117.80.157"},"version":"12.75.0.5931100"},"id":1,"name":"NHCITJJ1525","uuid":"e6c62f86-3bb4-5b9d-822f-ca60a4b64d3d"}';
 begin
   var LObj := TNodeInfo.Create(TEST_JSON);
   try

@@ -567,7 +567,7 @@ begin
 
   var LIPObj := TJSONObject.Create;
   LIPObj.AddPair('address', FClusterIP);
-  Result.AddPair('cluster_ip', LIPObj);
+  Result.AddPair('clusterIPInterface', LIPObj);
 
   Result.AddPair('drives', FDrives.ToJSONArray);
 
@@ -575,7 +575,7 @@ begin
 
   LIPObj := TJSONObject.Create;
   LIPObj.AddPair('address', FManagementIP);
-  Result.AddPair('management_ip', LIPObj);
+  Result.AddPair('managementIPInterface', LIPObj);
 
   Result.AddPair('role', FRole);
 
@@ -583,7 +583,7 @@ begin
 
   LIPObj := TJSONObject.Create;
   LIPObj.AddPair('address', FStorageIP);
-  Result.AddPair('storage_ip', LIPObj);
+  Result.AddPair('storageIPInterface', LIPObj);
 
   Result.AddPair('version', FVersion);
 end;
@@ -591,8 +591,8 @@ end;
 procedure TNodeInfoDetail.FromJsonObject(AJSONObject: TJSONObject);
 begin
   Init;
-  if (nil <> AJSONObject.Values['cluster_ip']) and (nil <> (AJSONObject.Values['cluster_ip'] as TJSONObject).Values['address']) then
-    FClusterIP := (AJSONObject.Values['cluster_ip'] as TJSONObject).Values['address'].Value;
+  if (nil <> AJSONObject.Values['clusterIPInterface']) and (nil <> (AJSONObject.Values['clusterIPInterface'] as TJSONObject).Values['address']) then
+    FClusterIP := (AJSONObject.Values['clusterIPInterface'] as TJSONObject).Values['address'].Value;
 
   if nil <> AJSONObject.Values['drives'] then
     FDrives.FromJSONArray(AJSONObject.Values['drives'] as TJSONArray);
@@ -600,8 +600,8 @@ begin
   if (nil <> AJSONObject.Values['maintenance_mode']) then
     FMaintenceModeInfo.FromJsonObject(AJSONObject.Values['maintenance_mode'] as TJSONObject);
 
-  if (nil <> AJSONObject.Values['management_ip']) and (nil <> (AJSONObject.Values['management_ip'] as TJSONObject).Values['address']) then
-    FManagementIP := (AJSONObject.Values['management_ip'] as TJSONObject).Values['address'].Value;
+  if (nil <> AJSONObject.Values['managementIPInterface']) and (nil <> (AJSONObject.Values['managementIPInterface'] as TJSONObject).Values['address']) then
+    FManagementIP := (AJSONObject.Values['managementIPInterface'] as TJSONObject).Values['address'].Value;
 
   if nil <> AJSONObject.Values['role'] then
     FRole := AJSONObject.Values['role'].Value;
@@ -609,8 +609,8 @@ begin
   if (nil <> AJSONObject.Values['status']) then
     FNodeStatus.FromJsonObject(AJSONObject.Values['status'] as TJSONObject);
 
-  if (nil <> AJSONObject.Values['storage_ip']) and (nil <> (AJSONObject.Values['storage_ip'] as TJSONObject).Values['address']) then
-    FStorageIP := (AJSONObject.Values['storage_ip'] as TJSONObject).Values['address'].Value;
+  if (nil <> AJSONObject.Values['storageIPInterface']) and (nil <> (AJSONObject.Values['storageIPInterface'] as TJSONObject).Values['address']) then
+    FStorageIP := (AJSONObject.Values['storageIPInterface'] as TJSONObject).Values['address'].Value;
 
   if nil <> AJSONObject.Values['version'] then
     FVersion := AJSONObject.Values['version'].Value;

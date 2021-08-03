@@ -130,8 +130,8 @@
     <DCC_ExeOutput>..\Release</DCC_ExeOutput>
     <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
     <Icon_MainIcon>TheIcon.ico</Icon_MainIcon>
-    <VerInfo_Build>73</VerInfo_Build>
-    <VerInfo_Keys>CompanyName=;FileDescription=ElementUI;FileVersion=1.0.0.73;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.ElementUI;ProductName=ElementUI;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+    <VerInfo_Build>75</VerInfo_Build>
+    <VerInfo_Keys>CompanyName=;FileDescription=ElementUI;FileVersion=1.0.0.75;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.ElementUI;ProductName=ElementUI;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
   </PropertyGroup>
   <ItemGroup>
     <DelphiCompile Include="$(MainSource)">
